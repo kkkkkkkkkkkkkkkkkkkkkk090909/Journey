@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+:root{--bg:#0f0f14;--sf:#16161f;--s2:#1e1e2a;--s3:#252535;--gold:#c9a84c;--gold2:#e8c87a;--cream:#f0e6d3;--muted:#7a7a9a;--danger:#c0392b;--ok:#27ae60;--bdr:rgba(201,168,76,.15)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body,#root{height:100%;width:100%;overflow:hidden}
+body{background:var(--bg);color:var(--cream);font-family:'DM Sans',sans-serif}
+#root{display:flex;flex-direction:column}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
+.hdr{background:linear-gradient(135deg,#0f0f14,#1a1a28);border-bottom:1px solid var(--bdr);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.hdr-t{font-family:'Cormorant Garamond',serif;font-size:1.45rem;color:var(--gold);font-weight:600;letter-spacing:.03em}
+.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.chip{background:var(--s3);border:1px solid var(--bdr);border-radius:20px;padding:3px 9px;font-size:.65rem;color:var(--gold2);font-weight:500;white-space:nowrap}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.sec{padding:14px}
+.bnav{display:flex;background:var(--sf);border-top:1px solid var(--bdr);flex-shrink:0}
+.nbtn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.58rem;font-weight:500;transition:color .2s}
+.nbtn.on{color:var(--gold)}
+.nico{font-size:1.15rem;line-height:1}
+.nbtn.on .nico{filter:drop-shadow(0 0 4px var(--gold))}
+.card{background:var(--sf);border:1px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:11px}
+.ctitle{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold);font-weight:600;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.pwrap{background:var(--s3);border-radius:99px;height:6px;overflow:hidden;margin:7px 0}
+.pbar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:99px;transition:width .4s}
+.plbl{font-size:.73rem;color:var(--muted);display:flex;justify-content:space-between}
+.titem{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fi .2s ease}
+.titem:last-child{border-bottom:none}
+.tchk{width:20px;height:20px;border-radius:6px;border:2px solid var(--gold);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background .2s}
+.tchk.on{background:var(--gold);border-color:var(--gold)}
+.tchk.on::after{content:'checkmark';color:#0f0f14;font-size:.68rem;font-weight:700}
+.ttxt{flex:1;font-size:.88rem;line-height:1.4;cursor:pointer}
+.ttxt.done{text-decoration:line-through;color:var(--muted)}
+.ttag{font-size:.63rem;background:var(--s3);border:1px solid var(--bdr);border-radius:99px;padding:1px 7px;color:var(--gold);margin-top:2px;display:inline-block}
+.tdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:2px 5px;opacity:.5;line-height:1}
+.tdel:hover{opacity:1;color:var(--danger)}
+.row{display:flex;gap:7px;margin-top:10px}
+.inp{flex:1;background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:10px 11px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--gold)}
+.inp::placeholder{color:var(--muted)}
+.inp-sm{padding:8px 10px;font-size:.82rem}
+textarea.inp{resize:vertical;min-height:78px;line-height:1.5}
+.btn{background:var(--gold);color:#0f0f14;border:none;border-radius:8px;padding:10px 15px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;transition:background .2s;flex-shrink:0}
+.btn:hover{background:var(--gold2)}
+.btng{background:var(--s3);color:var(--cream);border:1px solid var(--bdr)}
+.btng:hover{background:var(--s2);border-color:var(--gold);color:var(--cream)}
+.btnsm{padding:6px 11px;font-size:.78rem}
+.btnfull{width:100%}
+.stabs{display:flex;gap:5px;margin-bottom:13px;flex-wrap:wrap}
+.stab{background:var(--s3);border:none;border-radius:20px;padding:5px 13px;font-size:.76rem;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s}
+.stab.on{background:var(--gold);color:#0f0f14;font-weight:600}
+.gitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.gitem:last-child{border-bottom:none}
+.mbdg{font-size:.61rem;border-radius:99px;padding:2px 7px;border:1px solid;display:inline-block;margin-top:3px}
+.mbdg.y{color:var(--ok);border-color:var(--ok);background:rgba(39,174,96,.08)}
+.mbdg.n{color:var(--muted);border-color:var(--muted);background:rgba(122,122,154,.08)}
+.dnav{display:flex;align-items:center;gap:9px}
+.dnbtn{background:var(--s3);border:1px solid var(--bdr);border-radius:6px;padding:5px 10px;color:var(--cream);cursor:pointer;font-size:.9rem;line-height:1}
+.dlbl{font-family:'Cormorant Garamond',serif;font-size:.95rem;color:var(--gold);flex:1;text-align:center}
+.dstats{display:flex;gap:9px;margin-bottom:13px}
+.dstat{flex:1;background:var(--s3);border-radius:10px;padding:9px;text-align:center;border:1px solid var(--bdr)}
+.dsnum{font-family:'Cormorant Garamond',serif;font-size:1.55rem;color:var(--gold);line-height:1}
+.dslbl{font-size:.62rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.07em}
+.gquote{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold);font-size:.97rem;text-align:center;padding:11px;border-left:2px solid var(--gold);margin-bottom:13px;background:rgba(201,168,76,.05);border-radius:0 8px 8px 0}
+.aitem{display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.aitem:last-child{border-bottom:none}
+.anum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--gold);opacity:.5;width:22px;flex-shrink:0}
+.atxt{flex:1;font-size:.88rem;line-height:1.4}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:11px}
+.cdname{text-align:center;font-size:.63rem;color:var(--muted);padding:3px 0;font-weight:600}
+.cday{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer;position:relative;transition:background .15s}
+.cday:hover{background:var(--s3)}
+.cday.today{background:var(--gold);color:#0f0f14;font-weight:700}
+.cday.sel:not(.today){background:var(--s3);font-weight:600;outline:1px solid var(--gold)}
+.cday.hase::after{content:'';position:absolute;bottom:2px;width:3px;height:3px;border-radius:50%;background:var(--gold2)}
+.cday.today.hase::after{background:#0f0f14}
+.cday.oth{color:var(--muted);opacity:.3;pointer-events:none}
+.chdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.cmo{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--gold)}
+.evitem{display:flex;gap:9px;align-items:flex-start;padding:9px;background:var(--s3);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--gold)}
+.evtime{font-size:.73rem;color:var(--gold2);font-weight:600;white-space:nowrap;min-width:55px}
+.evtit{flex:1;font-size:.86rem}
+.evdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;opacity:.6}
+.evdel:hover{opacity:1;color:var(--danger)}
+.swgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
+.swcard{background:var(--s3);border-radius:8px;padding:9px}
+.swlbl{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+textarea.swinp{width:100%;background:transparent;border:none;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.81rem;resize:none;outline:none;min-height:58px;line-height:1.5}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:14px}
+.modal{background:var(--sf);border:1px solid var(--bdr);border-radius:14px 14px 10px 10px;width:100%;max-width:480px;max-height:82vh;overflow-y:auto;padding:18px}
+.mtitle{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--gold);margin-bottom:14px}
+.macts{display:flex;gap:7px;margin-top:13px}
+.flbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;font-weight:600;display:block}
+.frow{margin-bottom:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.pbanner{border-radius:9px;padding:9px 13px;margin-bottom:11px;display:flex;align-items:flex-start;gap:9px}
+.pbanner.plan{background:rgba(201,168,76,.09);border:1px solid rgba(201,168,76,.3)}
+.pbanner.lock{background:rgba(122,122,154,.06);border:1px solid rgba(122,122,154,.18)}
+.pb-ico{font-size:1rem;flex-shrink:0;margin-top:1px}
+.pb-hd{font-size:.73rem;font-weight:600;margin-bottom:2px}
+.gold{color:var(--gold)}.muted{color:var(--muted)}
+.pb-bd{font-size:.73rem;color:var(--muted);line-height:1.4}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--gold);display:inline-block;margin-right:3px}
+.wpick{background:var(--s3);border:1px solid var(--bdr);border-radius:8px;padding:7px 11px;margin-top:7px}
+.wpick label{font-size:.76rem;color:var(--muted);display:block;margin-bottom:5px}
+select.inp option{background:var(--s2)}
+.empty{text-align:center;padding:24px 14px;color:var(--muted)}
+.eico{font-size:1.8rem;margin-bottom:7px}
+.etxt{font-size:.83rem}
+.hint{font-size:.73rem;margin-top:5px}
+.hint.ok{color:var(--ok)}.hint.mu{color:var(--muted)}
+@keyframes fi{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:99px}
+.setup{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
+.setup-t{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--gold);margin-bottom:8px}
+.setup-s{font-size:.88rem;color:var(--muted);margin-bottom:28px;line-height:1.6;max-width:300px}
+.setup-f{width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect, useRef} = React;
+
+// helpers
+const fmt = d => { if(!d) return ''; const x = d instanceof Date ? d : new Date(d); return x.toISOString().split('T')[0]; };
+const todayStr = () => fmt(new Date());
+const genId = () => Math.random().toString(36).slice(2,9);
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const calcDay  = s => { const a=new Date(s); a.setHours(0,0,0,0); const b=new Date(); b.setHours(0,0,0,0); return Math.max(1,Math.floor((b-a)/86400000)+1); };
+const calcWeek = d => Math.ceil(d/7);
+const calcMonth = s => { const a=new Date(s+'T12:00:00'), b=new Date(); return Math.max(1,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())+1); };
+const calcYear  = d => Math.max(1,Math.ceil(d/365));
+
+const isMeas = t => /\b\d+\b|pages?|mins?|minutes?|hours?|times?|days?|chapters?|verses?|km|miles?|reps?|sessions?|books?|calls?|words?|percent|%/i.test(t);
+
+const nearestSunToMonthEnd = (yr, mo) => {
+  const last = new Date(yr, mo+1, 0);
+  const dow = last.getDay();
+  const back = dow, fwd = dow===0?0:7-dow;
+  const d = back <= fwd
+    ? new Date(yr, mo, last.getDate()-back)
+    : new Date(yr, mo, last.getDate()+fwd);
+  return fmt(d);
+};
+
+// storage — plain localStorage, works everywhere, persists across sessions
+const DB = {
+  get(k, fallback=null){
+    try { const r=localStorage.getItem('jny_'+k); return r!==null?JSON.parse(r):fallback; } catch { return fallback; }
+  },
+  set(k, v){
+    try { localStorage.setItem('jny_'+k, JSON.stringify(v)); } catch {}
+  }
+};
+
+// shared components
+function PBar({pct, label}){
+  const p = Math.min(100, Math.max(0, pct||0));
+  return (
+    <div>
+      <div className="pwrap"><div className="pbar" style={{width:p+'%'}}/></div>
+      <div className="plbl"><span>{label}</span><span>{Math.round(p)}%</span></div>
+    </div>
+  );
+}
+
+function DateNav({date, setDate, maxToday}){
+  const isMax = maxToday && date >= todayStr();
+  const lbl = date===todayStr() ? 'Today'
+    : new Date(date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+  const go = dir => { const d=new Date(date+'T12:00:00'); d.setDate(d.getDate()+dir); setDate(fmt(d)); };
+  return (
+    <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
+      <div className="dnav">
+        <button className="dnbtn" onClick={()=>go(-1)}>&#8249;</button>
+        <div className="dlbl">{lbl}</div>
+        <button className="dnbtn" onClick={()=>go(1)} disabled={!!isMax} style={{opacity:isMax?0.35:1}}>&#8250;</button>
+      </div>
+    </div>
+  );
+}
+
+// Setup screen
+function Setup({onDone}){
+  const [d, setD] = useState('');
+  return (
+    <div className="setup">
+      <div className="setup-t">Journey</div>
+      <p className="setup-s">Welcome. When did your journey begin? This sets your Day 1.</p>
+      <div className="setup-f">
+        <label className="flbl" style={{textAlign:'left'}}>Journey Start Date</label>
+        <input className="inp" type="date" value={d} onChange={e=>setD(e.target.value)} max={todayStr()} style={{textAlign:'center'}}/>
+        <button className="btn btnfull" onClick={()=>d&&onDone(d)} disabled={!d}>Begin Journey &#8594;</button>
+      </div>
+    </div>
+  );
+}
+
+// Daily Tab
+function DailyTab({dn, wn, mn, yn, start}){
+  const [vd, setVd] = useState(todayStr());
+  const [todos, setTodos] = useState([]);
+  const [inp, setInp] = useState('');
+  const [wgoals, setWgoals] = useState([]);
+  const [sel, setSel] = useState('');
+
+  const getViewWeek = vdate => {
+    const s=new Date(start+'T12:00:00'); s.setHours(0,0,0,0);
+    const v=new Date(vdate+'T12:00:00'); v.setHours(0,0,0,0);
+    return Math.ceil((Math.max(0,Math.floor((v-s)/86400000))+1)/7);
+  };
+
+  useEffect(()=>{ setTodos(DB.get('todos_'+vd,[])); },[vd]);
+  useEffect(()=>{ setWgoals(DB.get('wgoals_'+getViewWeek(vd),[])); },[vd,start]);
+
+  const save = updated => { setTodos(updated); DB.set('todos_'+vd, updated); };
+  const add = () => {
+    if(!inp.trim()) return;
+    save([...todos, {id:genId(), text:inp.trim(), done:false, wgid:sel||null}]);
+    setInp(''); setSel('');
+  };
+  const toggle = id => save(todos.map(t => t.id===id ? {...t, done:!t.done} : t));
+  const del    = id => save(todos.filter(t => t.id!==id));
+
+  const done = todos.filter(t=>t.done).length;
+  const pct  = todos.length ? (done/todos.length)*100 : 0;
+
+  return (
+    <div className="sec">
+      <div className="dstats">
+        {[['Day',dn],['Week',wn],['Month',mn],['Year',yn]].map(([l,v])=>(
+          <div className="dstat" key={l}>
+            <div className="dsnum">{v}</div>
+            <div className="dslbl">{l}</div>
+          </div>
+        ))}
+      </div>
+      <DateNav date={vd} setDate={setVd} maxToday={true}/>
+      <div className="card">
+        <div className="ctitle">&#10022; Daily Tasks</div>
+        {todos.length>0 && <PBar pct={pct} label={`${done}/${todos.length} complete`}/>}
+        {todos.length===0 && <div className="empty"><div className="eico">&#128203;</div><div className="etxt">No tasks yet &#8212; add one below</div></div>}
+        {todos.map(t => {
+          const lg = wgoals.find(g=>g.id===t.wgid);
+          return (
+            <div key={t.id} className="titem">
+              <button className={'tchk'+(t.done?' on':'')} onClick={()=>toggle(t.id)} aria-label="toggle">
+                {t.done && <span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>&#10003;</span>}
+              </button>
+              <div style={{flex:1}}>
+                <div className={'ttxt'+(t.done?' done':'')} onClick={()=>toggle(t.id)}>{t.text}</div>
+                {lg && <span className="ttag"><span className="ldot"/>{lg.text.length>26?lg.text.slice(0,26)+'&#8230;':lg.text}</span>}
+              </div>
+              <button className="tdel" onClick={()=>del(t.id)}>&#10005;</button>
+            </div>
+          );
+        })}
+        <div className="row">
+          <input className="inp" placeholder="Add a task&#8230;" value={inp}
+            onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <button className="btn" onClick={add}>+</button>
+        </div>
+        {wgoals.length>0 && inp.trim() && (
+          <div className="wpick">
+            <label>Link to a weekly goal? (optional)</label>
+            <select className="inp inp-sm" value={sel} onChange={e=>setSel(e.target.value)}>
+              <option value="">&#8212; No link &#8212;</option>
+              {wgoals.map(g=><option key={g.id} value={g.id}>{g.text}</option>)}
+            </select>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Goals Tab
+function GoalsTab({dn, wn, mn, yn, start}){
+  const [sub, setSub] = useState('weekly');
+  const now = new Date(), isSun = now.getDay()===0, todayS = todayStr();
+
+  const planWk   = isSun ? wn+1 : wn;
+  const wFull    = isSun;
+  const wLabel   = isSun ? `Plan Week ${planWk}` : `Week ${wn}`;
+
+  const planSun  = nearestSunToMonthEnd(now.getFullYear(), now.getMonth());
+  const mFull    = isSun && todayS===planSun;
+  const planMn   = mFull ? mn+1 : mn;
+  const mLabel   = mFull ? `Plan Month ${planMn}` : `Month ${mn}`;
+  const planSunLbl = new Date(planSun+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long'});
+
+  const dyInYr   = ((dn-1)%365)+1;
+  const yFull    = dyInYr<=7;
+  const yLabel   = yFull ? `Plan Year ${yn}` : `Year ${yn}`;
+
+  return (
+    <div className="sec">
+      <div className="stabs">
+        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>{wLabel}</button>
+        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>{mLabel}</button>
+        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>{yLabel}</button>
+      </div>
+      {sub==='weekly' && <GoalList
+        skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={wFull} isplan={isSun}
+        note={wFull ? `Sunday planning &#8212; set your goals for Week ${planWk}.`
+          : `Planning opens every Sunday. Full editing resumes then.`}
+        type="week" period={planWk} start={start}/>}
+      {sub==='monthly' && <GoalList
+        skey={'mgoals_'+planMn} label={`Month ${planMn}`} full={mFull} isplan={mFull}
+        note={mFull ? `Monthly planning day! Set goals for Month ${planMn}.`
+          : `Monthly planning opens on the nearest Sunday to month-end &#8212; next is ${planSunLbl}.`}
+        type="none"/>}
+      {sub==='yearly' && <GoalList
+        skey={'ygoals_'+yn} label={`Year ${yn}`} full={yFull} isplan={yFull}
+        note={yFull ? `New year of the journey! Set your vision for Year ${yn}.`
+          : `Full yearly planning opens at the start of each journey year.`}
+        type="none"/>}
+    </div>
+  );
+}
+
+function GoalList({skey, label, full, isplan, note, type, period, start}){
+  const [goals, setGoals] = useState([]);
+  const [inp, setInp]     = useState('');
+  const [linked, setLinked] = useState({});
+
+  useEffect(()=>{ setGoals(DB.get(skey,[])); },[skey]);
+
+  useEffect(()=>{
+    if(type!=='week'||!start||!period) return;
+    const s=new Date(start+'T12:00:00'); s.setHours(0,0,0,0);
+    const ws=(period-1)*7;
+    const counts={};
+    for(let i=0;i<7;i++){
+      const d=new Date(s); d.setDate(d.getDate()+ws+i);
+      const ts=DB.get('todos_'+fmt(d),[]);
+      ts.forEach(t=>{
+        if(t.wgid){
+          if(!counts[t.wgid]) counts[t.wgid]={tot:0,done:0};
+          counts[t.wgid].tot++;
+          if(t.done) counts[t.wgid].done++;
+        }
+      });
+    }
+    setLinked(counts);
+  },[type,period,start,goals]);
+
+  const save = g => { setGoals(g); DB.set(skey,g); };
+  const add  = () => {
+    if(!inp.trim()) return;
+    save([...goals, {id:genId(), text:inp.trim(), measurable:isMeas(inp), done:false}]);
+    setInp('');
+  };
+  const toggle = id => save(goals.map(g=>g.id===id?{...g,done:!g.done}:g));
+  const del    = id => { if(full) save(goals.filter(g=>g.id!==id)); };
+
+  let tpct=0, mc=0;
+  goals.forEach(g=>{
+    if(!g.measurable) return; mc++;
+    const lk=linked[g.id];
+    if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100;
+    else if(g.done) tpct+=100;
+  });
+  const nm=goals.filter(g=>!g.measurable), nmd=nm.filter(g=>g.done).length;
+  const ovr = goals.length===0?0 : mc>0
+    ? (tpct/mc + (nm.length>0?(nmd/nm.length)*100:0)) / (mc>0&&nm.length>0?2:1)
+    : nm.length>0?(nmd/nm.length)*100:0;
+
+  return (
+    <div>
+      <div className={'pbanner '+(isplan?'plan':'lock')}>
+        <span className="pb-ico">{isplan?'&#128203;':'&#128274;'}</span>
+        <div>
+          <div className={'pb-hd '+(isplan?'gold':'muted')}>{isplan?'Planning Day':'Mid-period &#8212; Light edits only'}</div>
+          <div className="pb-bd" dangerouslySetInnerHTML={{__html:note}}/>
+        </div>
+      </div>
+      <div className="card">
+        <div className="ctitle">&#9675; {label} Goals</div>
+        {goals.length>0 && <PBar pct={ovr} label="Overall progress"/>}
+        {goals.length===0 && <div className="empty"><div className="eico">&#127919;</div>
+          <div className="etxt">{isplan?`Set your goals for ${label}`:`No goals set for ${label} yet`}</div></div>}
+        {goals.map(g=>{
+          const lk=linked[g.id], lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null;
+          return (
+            <div key={g.id} className="gitem">
+              {!g.measurable && (
+                <button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
+                  {g.done && <span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>&#10003;</span>}
+                </button>
+              )}
+              {g.measurable && <div style={{width:20,flexShrink:0}}/>}
+              <div style={{flex:1}}>
+                <div style={{fontSize:'.88rem',lineHeight:1.4,
+                  textDecoration:g.done&&!g.measurable?'line-through':'none',
+                  color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
+                <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
+                  <span className={'mbdg '+(g.measurable?'y':'n')}>
+                    {g.measurable?'&#9711; measurable':'&#9675; not measurable'}
+                  </span>
+                  {g.measurable&&lk&&lk.tot>0&&(
+                    <span style={{fontSize:'.66rem',color:'var(--gold2)'}}>{lk.done}/{lk.tot} tasks done</span>
+                  )}
+                </div>
+                {g.measurable&&lkp!==null&&(
+                  <div style={{marginTop:4}}>
+                    <div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div>
+                  </div>
+                )}
+              </div>
+              {full
+                ? <button className="tdel" onClick={()=>del(g.id)}>&#10005;</button>
+                : <div style={{width:22}}/>}
+            </div>
+          );
+        })}
+        <div className="row">
+          <input className="inp" placeholder={full?'Add a goal&#8230;':'Add a goal (light edit)&#8230;'} value={inp}
+            onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <button className="btn" onClick={add}>+</button>
+        </div>
+        {inp.trim() && (
+          <div className={'hint '+(isMeas(inp)?'ok':'mu')}>
+            {isMeas(inp)?'Measurable &#8212; progress tracked':'Not measurable &#8212; tick manually'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Bible Tab
+function BibleTab(){
+  const [vd, setVd] = useState(todayStr());
+  const [entry, setEntry] = useState({scripture:'',notes:''});
+  const [saved, setSaved] = useState(false);
+
+  useEffect(()=>{ setEntry(DB.get('bible_'+vd,{scripture:'',notes:''})); setSaved(false); },[vd]);
+
+  const save = () => { DB.set('bible_'+vd, entry); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+
+  return (
+    <div className="sec">
+      <div className="gquote">&#8220;Your word is a lamp to my feet and a light to my path.&#8221; &#8212; Psalm 119:105</div>
+      <DateNav date={vd} setDate={setVd} maxToday={true}/>
+      <div className="card">
+        <div className="ctitle">&#10013; Scripture Study</div>
+        <div className="frow">
+          <label className="flbl">Scripture References</label>
+          <input className="inp" placeholder="e.g. John 3:16, Psalm 23, Romans 8:28-39"
+            value={entry.scripture} onChange={e=>setEntry({...entry,scripture:e.target.value})}/>
+        </div>
+        <div className="frow">
+          <label className="flbl">Notes &amp; Reflections</label>
+          <textarea className="inp" style={{minHeight:150}}
+            placeholder="What is God speaking through this passage? Key insights, prayers, applications&#8230;"
+            value={entry.notes} onChange={e=>setEntry({...entry,notes:e.target.value})}/>
+        </div>
+        <button className="btn btnfull" onClick={save}>{saved?'&#10003; Saved':'Save Entry'}</button>
+      </div>
+    </div>
+  );
+}
+
+// Affirmations Tab
+function AffirmTab(){
+  const [list, setList] = useState([]);
+  const [inp, setInp]   = useState('');
+  const [editId, setEditId] = useState(null);
+  const [editTxt, setEditTxt] = useState('');
+
+  useEffect(()=>{ setList(DB.get('affirmations',[])); },[]);
+
+  const save = l => { setList(l); DB.set('affirmations',l); };
+  const add  = () => { if(!inp.trim()) return; save([...list,{id:genId(),text:inp.trim()}]); setInp(''); };
+  const del  = id => save(list.filter(a=>a.id!==id));
+  const saveEdit = () => { save(list.map(a=>a.id===editId?{...a,text:editTxt}:a)); setEditId(null); };
+
+  return (
+    <div className="sec">
+      <div className="gquote">&#8220;I am fearfully and wonderfully made.&#8221; &#8212; Psalm 139:14</div>
+      <div className="card">
+        <div className="ctitle">&#9728; Daily Affirmations</div>
+        {list.length===0 && <div className="empty"><div className="eico">&#10024;</div>
+          <div className="etxt">Add your daily affirmations to speak life</div></div>}
+        {list.map((a,i)=>(
+          <div key={a.id} className="aitem">
+            <div className="anum">{i+1}</div>
+            {editId===a.id ? (
+              <>
+                <input className="inp inp-sm" value={editTxt} autoFocus
+                  onChange={e=>setEditTxt(e.target.value)} onKeyDown={e=>e.key==='Enter'&&saveEdit()}
+                  style={{flex:1}}/>
+                <button className="btn btnsm" onClick={saveEdit}>Save</button>
+              </>
+            ) : (
+              <>
+                <div className="atxt" onClick={()=>{setEditId(a.id);setEditTxt(a.text);}}>{a.text}</div>
+                <button className="tdel" onClick={()=>del(a.id)}>&#10005;</button>
+              </>
+            )}
+          </div>
+        ))}
+        <div className="row">
+          <input className="inp" placeholder="I am&#8230;" value={inp}
+            onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <button className="btn" onClick={add}>+</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Calendar Tab
+function CalTab(){
+  const now = new Date();
+  const [yr, setYr]   = useState(now.getFullYear());
+  const [mo, setMo]   = useState(now.getMonth());
+  const [sel, setSel] = useState(todayStr());
+  const [events, setEvents] = useState([]);
+  const [modal, setModal]   = useState(false);
+  const [form, setForm]     = useState({title:'',st:'',et:'',type:'event',rec:'none'});
+
+  useEffect(()=>{
+    let evs = DB.get('calevents',[]);
+    if(!evs.some(e=>e.id==='keith_weekly')){
+      evs = [...evs, {id:'keith_weekly',title:'Weekly Meeting &#8212; Keith',st:'19:00',et:'20:00',type:'meeting',rec:'sun',dk:null}];
+      DB.set('calevents',evs);
+    }
+    setEvents(evs);
+  },[]);
+
+  const saveEvs = e => { setEvents(e); DB.set('calevents',e); };
+  const evOn = dk => events.filter(e => e.rec==='sun' ? new Date(dk+'T12:00:00').getDay()===0 : e.dk===dk);
+
+  const first=new Date(yr,mo,1).getDay(), last=new Date(yr,mo+1,0).getDate(), prev=new Date(yr,mo,0).getDate();
+  const cells=[];
+  for(let i=first-1;i>=0;i--) cells.push({d:prev-i,cur:false});
+  for(let d=1;d<=last;d++) cells.push({d,cur:true});
+  while(cells.length%7!==0) cells.push({d:cells.length-last-first+1,cur:false});
+
+  const navMo = dir => { let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
+
+  const addEv = () => {
+    if(!form.title.trim()) return;
+    saveEvs([...events,{id:genId(),...form,dk:sel}]);
+    setForm({title:'',st:'',et:'',type:'event',rec:'none'}); setModal(false);
+  };
+
+  const selEvs = evOn(sel);
+  const selLbl = new Date(sel+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+
+  return (
+    <div className="sec">
+      <div className="card">
+        <div className="chdr">
+          <button className="dnbtn" onClick={()=>navMo(-1)}>&#8249;</button>
+          <div className="cmo">{MONTHS[mo]} {yr}</div>
+          <button className="dnbtn" onClick={()=>navMo(1)}>&#8250;</button>
+        </div>
+        <div className="cgrid">
+          {DAYS.map(d=><div key={d} className="cdname">{d}</div>)}
+          {cells.map((c,i)=>{
+            const dk=c.cur?fmt(new Date(yr,mo,c.d)):'';
+            const isTdy=dk===todayStr(), isSel=dk===sel, hasE=dk&&evOn(dk).length>0;
+            return (
+              <div key={i}
+                className={`cday${!c.cur?' oth':''}${isTdy?' today':''}${isSel&&!isTdy?' sel':''}${hasE?' hase':''}`}
+                onClick={()=>c.cur&&setSel(dk)}>{c.d}</div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="card">
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
+          <div className="ctitle" style={{marginBottom:0}}>{selLbl}</div>
+          <button className="btn btnsm" onClick={()=>setModal(true)}>+ Event</button>
+        </div>
+        {selEvs.length===0 && <div className="empty" style={{padding:'14px 0'}}><div className="etxt">No events &#8212; tap + to add one</div></div>}
+        {selEvs.map(ev=>(
+          <div key={ev.id} className="evitem">
+            <div className="evtime">
+              {ev.st||'&#8212;'}
+              {ev.et && <><br/><span style={{opacity:.6}}>{ev.et}</span></>}
+            </div>
+            <div style={{flex:1}}>
+              <div className="evtit" dangerouslySetInnerHTML={{__html:ev.title}}/>
+              {ev.rec==='sun' && <div style={{fontSize:'.66rem',color:'var(--gold)',marginTop:2}}>&#8635; Weekly (Sundays)</div>}
+              {ev.type==='deadline' && <div style={{fontSize:'.66rem',color:'#e74c3c',marginTop:2}}>&#9873; Deadline</div>}
+            </div>
+            <button className="evdel" onClick={()=>saveEvs(events.filter(e=>e.id!==ev.id))}>&#10005;</button>
+          </div>
+        ))}
+      </div>
+      {modal && (
+        <div className="overlay" onClick={e=>e.target===e.currentTarget&&setModal(false)}>
+          <div className="modal">
+            <div className="mtitle">Add Event &#8212; {selLbl}</div>
+            <div className="frow">
+              <label className="flbl">Title</label>
+              <input className="inp" placeholder="Event title" value={form.title}
+                onChange={e=>setForm({...form,title:e.target.value})} autoFocus/>
+            </div>
+            <div className="grid2" style={{marginBottom:11}}>
+              <div><label className="flbl">Start Time</label>
+                <input className="inp inp-sm" type="time" value={form.st} onChange={e=>setForm({...form,st:e.target.value})}/></div>
+              <div><label className="flbl">End Time</label>
+                <input className="inp inp-sm" type="time" value={form.et} onChange={e=>setForm({...form,et:e.target.value})}/></div>
+            </div>
+            <div className="frow">
+              <label className="flbl">Type</label>
+              <select className="inp inp-sm" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>
+                <option value="event">Event / Meeting</option>
+                <option value="deadline">Deadline</option>
+                <option value="reminder">Reminder</option>
+              </select>
+            </div>
+            <div className="frow">
+              <label className="flbl">Recurring</label>
+              <select className="inp inp-sm" value={form.rec} onChange={e=>setForm({...form,rec:e.target.value})}>
+                <option value="none">No repeat</option>
+                <option value="sun">Every Sunday</option>
+              </select>
+            </div>
+            <div className="macts">
+              <button className="btn btng" onClick={()=>setModal(false)} style={{flex:1}}>Cancel</button>
+              <button className="btn" onClick={addEv} style={{flex:1}}>Add Event</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Meeting Tab
+function MeetTab({wn}){
+  const [vw, setVw]   = useState(wn);
+  const [data, setData] = useState({str:'',weak:'',imp:'',ahead:'',notes:''});
+  const [saved, setSaved] = useState(false);
+
+  useEffect(()=>{
+    setData(DB.get('meeting_'+vw,{str:'',weak:'',imp:'',ahead:'',notes:''}));
+    setSaved(false);
+  },[vw]);
+
+  const save = () => { DB.set('meeting_'+vw, data); setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  const f = (k,v) => setData(d=>({...d,[k]:v}));
+
+  return (
+    <div className="sec">
+      <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:13}}>
+        <button className="dnbtn" onClick={()=>setVw(w=>Math.max(1,w-1))}>&#8249;</button>
+        <div style={{flex:1,textAlign:'center',fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--gold)'}}>
+          Week {vw} {vw===wn?'(Current)':''}
+        </div>
+        <button className="dnbtn" onClick={()=>setVw(w=>Math.min(wn,w+1))} disabled={vw>=wn} style={{opacity:vw>=wn?0.35:1}}>&#8250;</button>
+      </div>
+      <div className="card">
+        <div className="ctitle">&#9670; Week Review</div>
+        <div className="swgrid">
+          <div className="swcard" style={{borderTop:'2px solid var(--ok)'}}>
+            <div className="swlbl" style={{color:'var(--ok)'}}>Strengths</div>
+            <textarea className="swinp" placeholder="What went well?" value={data.str} onChange={e=>f('str',e.target.value)}/>
+          </div>
+          <div className="swcard" style={{borderTop:'2px solid #e74c3c'}}>
+            <div className="swlbl" style={{color:'#e74c3c'}}>Weaknesses</div>
+            <textarea className="swinp" placeholder="Where did you fall short?" value={data.weak} onChange={e=>f('weak',e.target.value)}/>
+          </div>
+        </div>
+        <div className="swcard" style={{marginBottom:9,borderLeft:'2px solid var(--gold)'}}>
+          <div className="swlbl">Areas to Improve</div>
+          <textarea className="swinp" placeholder="What will you focus on next week?" value={data.imp} onChange={e=>f('imp',e.target.value)} style={{minHeight:65}}/>
+        </div>
+      </div>
+      <div className="card">
+        <div className="ctitle">&#9670; Partner Planning &#8212; Keith</div>
+        <div className="frow">
+          <label className="flbl">Week Ahead Plan</label>
+          <textarea className="inp" placeholder="Goals, focus areas and commitments discussed with Keith&#8230;"
+            value={data.ahead} onChange={e=>f('ahead',e.target.value)} style={{minHeight:90}}/>
+        </div>
+        <div className="frow">
+          <label className="flbl">Meeting Notes</label>
+          <textarea className="inp" placeholder="Key points, decisions, action items&#8230;"
+            value={data.notes} onChange={e=>f('notes',e.target.value)} style={{minHeight:90}}/>
+        </div>
+        <button className="btn btnfull" onClick={save}>{saved?'&#10003; Saved':'Save Meeting Notes'}</button>
+      </div>
+    </div>
+  );
+}
+
+// App Root
+const TABS = [
+  {id:'daily',  ico:'✦', lbl:'Today'},
+  {id:'goals',  ico:'◎', lbl:'Goals'},
+  {id:'bible',  ico:'✝', lbl:'Scripture'},
+  {id:'affirm', ico:'☀', lbl:'Affirm'},
+  {id:'cal',    ico:'◻', lbl:'Calendar'},
+  {id:'meet',   ico:'◈', lbl:'Meeting'},
+];
+
+function App(){
+  const [tab, setTab]     = useState('daily');
+  const [start, setStart] = useState(undefined);
+
+  useEffect(()=>{
+    const s = DB.get('start', null);
+    setStart(s);
+  },[]);
+
+  const onSetup = d => { DB.set('start', d); setStart(d); };
+
+  if(start===undefined) return (
+    <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',
+      color:'var(--gold)',fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem'}}>Loading&#8230;</div>
+  );
+
+  if(!start) return <Setup onDone={onSetup}/>;
+
+  const dn=calcDay(start), wn=calcWeek(dn), mn=calcMonth(start), yn=calcYear(dn);
+
+  return (
+    <div className="app">
+      <header className="hdr">
+        <div className="hdr-t">Journey</div>
+        <div className="chips">
+          <span className="chip">Day {dn}</span>
+          <span className="chip">Wk {wn}</span>
+          <span className="chip">Mo {mn}</span>
+          <span className="chip">Yr {yn}</span>
+        </div>
+      </header>
+      <main className="main">
+        {tab==='daily'  && <DailyTab  dn={dn} wn={wn} mn={mn} yn={yn} start={start}/>}
+        {tab==='goals'  && <GoalsTab  dn={dn} wn={wn} mn={mn} yn={yn} start={start}/>}
+        {tab==='bible'  && <BibleTab/>}
+        {tab==='affirm' && <AffirmTab/>}
+        {tab==='cal'    && <CalTab/>}
+        {tab==='meet'   && <MeetTab wn={wn}/>}
+      </main>
+      <nav className="bnav">
+        {TABS.map(t=>(
+          <button key={t.id} className={'nbtn'+(tab===t.id?' on':'')} onClick={()=>setTab(t.id)}>
+            <span className="nico">{t.ico}</span>
+            <span>{t.lbl}</span>
+          </button>
+        ))}
+      </nav>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
