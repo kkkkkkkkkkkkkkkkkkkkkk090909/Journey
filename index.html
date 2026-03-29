@@ -188,7 +188,7 @@ select.inp option{background:var(--s2)}
 .bnum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;line-height:1}
 .bnum.pos{color:var(--ok)}.bnum.neg{color:var(--danger)}.bnum.neu{color:var(--acc2)}
 .blbl{font-size:.58rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
-.bcat{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.bcat{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .bcat:last-child{border-bottom:none}
 .bcat-ico{font-size:1.05rem;flex-shrink:0;width:22px;text-align:center}
 .bcat-info{flex:1;min-width:0}
@@ -217,7 +217,6 @@ const todayStr = () => fmt(new Date());
 const genId = () => Math.random().toString(36).slice(2,9);
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 const calcDay   = s => { const a=new Date(s); a.setHours(0,0,0,0); const b=new Date(); b.setHours(0,0,0,0); return Math.max(1,Math.floor((b-a)/86400000)+1); };
 const calcWeek  = d => Math.ceil(d/7);
@@ -238,7 +237,7 @@ const Sync = (() => {
   let _status = 'offline';
   let _listeners = [];
   let _timer = null;
-  let _pending = {};
+  let _pending = {}; // key -> val, batched upserts
 
   const notify = s => { _status=s; _listeners.forEach(fn=>fn(s)); };
   const onStatus = fn => { _listeners.push(fn); return ()=>{ _listeners=_listeners.filter(f=>f!==fn); }; };
@@ -332,7 +331,7 @@ function DateNav({date,setDate,maxToday}){
 
 /* ─── Sync Setup Modal ─── */
 function SyncModal({onClose, onSynced}){
-  const [step, setStep] = useState('check');
+  const [step, setStep] = useState('check'); // check | setup | done
   const [url, setUrl]   = useState(DB.get('sync_url','')||'');
   const [key, setKey]   = useState(DB.get('sync_key','')||'');
   const [status, setStatus] = useState(Sync.getStatus());
@@ -348,7 +347,7 @@ function SyncModal({onClose, onSynced}){
   const copySQL = () => {
     navigator.clipboard.writeText(Sync.SQL).then(()=>{
       setCopied(true); setTimeout(()=>setCopied(false),2000);
-    }).catch(()=>{});
+    }).catch(()=>{ /* fallback: select text */ });
   };
 
   const connect = async () => {
@@ -379,6 +378,7 @@ function SyncModal({onClose, onSynced}){
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
         <div className="mtitle">☁ Sync Across Devices</div>
+
         {step==='done' ? (
           <>
             <div className={`sync-status-row ${status}`}>
@@ -401,6 +401,7 @@ function SyncModal({onClose, onSynced}){
             <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:16}}>
               Follow these steps to sync your Journey data across your phone and laptop for free. Takes about 5 minutes.
             </p>
+
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
@@ -408,6 +409,7 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">Go to <strong style={{color:'var(--gold2)'}}>supabase.com</strong> and click "Start your project". Sign up with GitHub or email (it's free).</div>
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
@@ -415,6 +417,7 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">Click "New project". Give it any name (e.g. "journey"). Choose a region close to you. Set any database password. Wait ~2 minutes for it to start.</div>
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">3</div>
               <div className="step-body">
@@ -426,6 +429,7 @@ function SyncModal({onClose, onSynced}){
                 {!copied && <div style={{fontSize:'.7rem',color:'var(--muted)',marginTop:4}}>Tap the box above to copy</div>}
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">4</div>
               <div className="step-body">
@@ -433,6 +437,7 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">In Supabase, go to <strong style={{color:'var(--cream)'}}>Settings → API</strong>. Copy your <strong style={{color:'var(--cream)'}}>Project URL</strong> and your <strong style={{color:'var(--cream)'}}>anon / public</strong> key.</div>
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">5</div>
               <div className="step-body">
@@ -494,23 +499,6 @@ function Donut({pct, size=88, thick=9, color='#6c63ff', bg='rgba(108,99,255,0.12
   );
 }
 
-function SmallDonut({pct,color='#6c63ff',size=56}){
-  const thick=6,r=(size-thick)/2,circ=2*Math.PI*r,dash=Math.min(pct,100)/100*circ;
-  return(
-    <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
-      <svg width={size} height={size} style={{transform:'rotate(-90deg)',display:'block'}}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={thick}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={thick}
-          strokeDasharray={dash+' '+circ} strokeLinecap="round"/>
-      </svg>
-      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',
-        fontSize:'.58rem',fontWeight:700,color:pct>0?color:'var(--muted)'}}>
-        {Math.round(pct)}%
-      </div>
-    </div>
-  );
-}
-
 /* ─── Daily ─── */
 function DailyDay({dateStr, start, isToday, wgoals}){
   const [todos, setTodos] = useState([]);
@@ -535,23 +523,27 @@ function DailyDay({dateStr, start, isToday, wgoals}){
 
   return(
     <div style={{
-      width:'100%',
+      minWidth:'82vw',maxWidth:340,flexShrink:0,
       background:isToday?'#111630':'#0e1120',
       border:'1px solid '+(isToday?'rgba(108,99,255,.4)':'rgba(58,64,128,.25)'),
       borderRadius:14,overflow:'hidden',display:'flex',flexDirection:'column'
     }}>
+      {/* Day header */}
       <div style={{background:isToday?'#6c63ff':'#1c2248',padding:'12px 14px 10px',textAlign:'center'}}>
         <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.15rem',fontWeight:700,color:'#fff',letterSpacing:'.04em'}}>{dayName}</div>
         <div style={{fontSize:'.7rem',color:isToday?'rgba(255,255,255,.75)':'rgba(168,156,255,.7)',marginTop:2}}>{dateLabel}</div>
       </div>
+      {/* Donut */}
       <div style={{display:'flex',justifyContent:'center',padding:'16px 0 10px',background:isToday?'rgba(108,99,255,.05)':'transparent'}}>
         <Donut pct={pct} size={90} thick={9} color={accent} bg={accentBg}/>
       </div>
+      {/* Stats row */}
       <div style={{display:'flex',justifyContent:'center',gap:14,padding:'0 14px 10px',fontSize:'.68rem',color:'var(--muted)'}}>
         <span style={{color:'var(--ok)'}}>✓ {done} Done</span>
         <span style={{color:'#ef5350'}}>✕ {todos.length-done} Left</span>
       </div>
-      <div style={{flex:1,padding:'0 12px 10px'}}>
+      {/* Tasks */}
+      <div style={{flex:1,padding:'0 12px 10px',overflowY:'auto',maxHeight:280}}>
         <div style={{fontSize:'.65rem',fontWeight:700,letterSpacing:'.1em',color:isToday?'var(--acc2)':'var(--muted)',marginBottom:8,textTransform:'uppercase'}}>Tasks</div>
         {todos.length===0&&!isFuture&&(
           <div style={{fontSize:'.75rem',color:'var(--muted)',textAlign:'center',padding:'8px 0'}}>No tasks — tap + to add</div>
@@ -576,6 +568,7 @@ function DailyDay({dateStr, start, isToday, wgoals}){
             </div>
           );
         })}
+        {/* Add task inline */}
         {!isFuture&&adding?(
           <div style={{marginTop:8}}>
             <div style={{display:'flex',gap:6}}>
@@ -598,6 +591,7 @@ function DailyDay({dateStr, start, isToday, wgoals}){
           </button>
         )}
       </div>
+      {/* Completed / not done footer */}
       <div style={{borderTop:'1px solid rgba(255,255,255,.05)',display:'flex',fontSize:'.65rem',color:'var(--muted)'}}>
         <div style={{flex:1,padding:'6px 12px',textAlign:'center'}}>Completed<br/><span style={{color:'var(--ok)',fontWeight:600}}>{done}</span></div>
         <div style={{flex:1,padding:'6px 12px',textAlign:'center',borderLeft:'1px solid rgba(255,255,255,.05)'}}>Not Done<br/><span style={{color:'#ef5350',fontWeight:600}}>{todos.length-done}</span></div>
@@ -607,59 +601,69 @@ function DailyDay({dateStr, start, isToday, wgoals}){
 }
 
 function DailyTab({dn,wn,mn,yn,start}){
-  const [activeDate,setActiveDate]=useState(todayStr());
+  const now=new Date();
+  // Week starts Monday
+  const dow=now.getDay(); // 0=sun
+  const mondayOffset=dow===0?-6:1-dow;
+  const weekStart=new Date(now); weekStart.setDate(now.getDate()+mondayOffset); weekStart.setHours(0,0,0,0);
+  const [weekOffset,setWeekOffset]=useState(0);
   const [wgoals,setWgoals]=useState([]);
+  const scrollRef=useRef();
 
-  const goDay=dir=>{
-    const d=new Date(activeDate+'T12:00:00');
-    d.setDate(d.getDate()+dir);
-    const next=fmt(d);
-    if(next<=todayStr()) setActiveDate(next);
+  // Build 7 days for current viewed week
+  const days=Array.from({length:7},(_,i)=>{
+    const d=new Date(weekStart); d.setDate(weekStart.getDate()+weekOffset*7+i);
+    return fmt(d);
+  });
+
+  const weekLabel=()=>{
+    const s=new Date(days[0]+'T12:00:00'), e=new Date(days[6]+'T12:00:00');
+    return s.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+e.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   };
 
   useEffect(()=>{
     const s=new Date(start+'T12:00:00'); s.setHours(0,0,0,0);
-    const v=new Date(activeDate+'T12:00:00'); v.setHours(0,0,0,0);
+    const v=new Date(days[0]+'T12:00:00'); v.setHours(0,0,0,0);
     const wk=Math.ceil((Math.max(0,Math.floor((v-s)/86400000))+1)/7);
     setWgoals(DB.get('wgoals_'+wk,[]));
-  },[activeDate,start]);
+  },[weekOffset,start]);
 
-  const isToday=activeDate===todayStr();
+  // Scroll to today on initial load
+  useEffect(()=>{
+    if(scrollRef.current&&weekOffset===0){
+      const todayIdx=days.indexOf(todayStr());
+      if(todayIdx>=0){
+        const el=scrollRef.current.children[todayIdx];
+        if(el) el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+      }
+    }
+  },[]);
+
+  const canGoFwd=weekOffset<0||(weekOffset===0&&days[6]<todayStr());
 
   return(
     <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
-      {/* Stats row */}
+      {/* Stats bar */}
       <div style={{display:'flex',gap:8,padding:'12px 14px 8px',flexShrink:0}}>
         {[['Day',dn],['Week',wn],['Month',mn],['Year',yn]].map(([l,v])=>(
           <div key={l} className="dstat"><div className="dsnum">{v}</div><div className="dslbl">{l}</div></div>
         ))}
       </div>
-      {/* Date nav */}
+      {/* Week nav */}
       <div style={{display:'flex',alignItems:'center',padding:'0 14px 10px',gap:10,flexShrink:0}}>
-        <button className="dnbtn" onClick={()=>goDay(-1)}>‹</button>
-        <div style={{flex:1,textAlign:'center'}}>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--acc2)'}}>
-            {isToday?'Today':new Date(activeDate+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})}
-          </div>
-          {!isToday&&<div style={{fontSize:'.68rem',color:'var(--muted)',marginTop:1}}>
-            {new Date(activeDate+'T12:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'})}
-          </div>}
-        </div>
-        <button className="dnbtn" onClick={()=>goDay(1)} disabled={isToday} style={{opacity:isToday?.35:1}}>›</button>
+        <button className="dnbtn" onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
+        <div className="dlbl" style={{fontSize:'.8rem'}}>{weekLabel()}</div>
+        <button className="dnbtn" onClick={()=>setWeekOffset(w=>w+1)} disabled={weekOffset>=0} style={{opacity:weekOffset>=0?.35:1}}>›</button>
       </div>
-      {/* Today button if not on today */}
-      {!isToday&&(
-        <div style={{padding:'0 14px 8px',flexShrink:0}}>
-          <button onClick={()=>setActiveDate(todayStr())}
-            style={{width:'100%',background:'rgba(108,99,255,.1)',border:'1px solid rgba(108,99,255,.3)',
-              borderRadius:8,padding:'6px',color:'var(--acc2)',fontSize:'.75rem',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>
-            ↩ Back to Today
-          </button>
-        </div>
-      )}
-      {/* Day card */}
-      <div style={{flex:1,overflowY:'auto',padding:'0 14px 14px'}}>
-        <DailyDay dateStr={activeDate} start={start} isToday={isToday} wgoals={wgoals}/>
+      {/* Day columns */}
+      <div ref={scrollRef}
+        style={{display:'flex',gap:10,padding:'0 14px 14px',overflowX:'auto',
+          WebkitOverflowScrolling:'touch',flex:1,alignItems:'flex-start',scrollSnapType:'x mandatory'}}>
+        {days.map(d=>(
+          <div key={d} style={{scrollSnapAlign:'start'}}>
+            <DailyDay dateStr={d} start={start} isToday={d===todayStr()} wgoals={wgoals}/>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -683,25 +687,35 @@ function GoalsTab({dn,wn,mn,yn,start}){
       </div>
       {sub==='weekly'&&<GoalList skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={wFull} isplan={isSun}
         note={wFull?`Sunday planning — set your goals for Week ${planWk}.`:`Planning opens every Sunday. Full editing resumes then.`}
-        />}
+        type="week" period={planWk} start={start}/>}
       {sub==='monthly'&&<GoalList skey={'mgoals_'+planMn} label={`Month ${planMn}`} full={mFull} isplan={mFull}
-        note={mFull?`Monthly planning day! Set goals for Month ${planMn}.`:`Monthly planning opens on the nearest Sunday to month-end — next is ${planSunLbl}.`}/>}
+        note={mFull?`Monthly planning day! Set goals for Month ${planMn}.`:`Monthly planning opens on the nearest Sunday to month-end — next is ${planSunLbl}.`}
+        type="none"/>}
       {sub==='yearly'&&<GoalList skey={'ygoals_'+yn} label={`Year ${yn}`} full={yFull} isplan={yFull}
-        note={yFull?`New year of the journey! Set your vision for Year ${yn}.`:`Full yearly planning opens at the start of each journey year.`}/>}
+        note={yFull?`New year of the journey! Set your vision for Year ${yn}.`:`Full yearly planning opens at the start of each journey year.`}
+        type="none"/>}
     </div>
   );
 }
-
-function GoalList({skey,label,full,isplan,note}){
+function GoalList({skey,label,full,isplan,note,type,period,start}){
   const [goals,setGoals]=useState([]);
   const [inp,setInp]=useState('');
+  const [linked,setLinked]=useState({});
   useEffect(()=>{ setGoals(DB.get(skey,[])); },[skey]);
+  useEffect(()=>{
+    if(type!=='week'||!start||!period) return;
+    const s=new Date(start+'T12:00:00'); s.setHours(0,0,0,0); const ws=(period-1)*7;
+    const counts={};
+    for(let i=0;i<7;i++){ const d=new Date(s); d.setDate(d.getDate()+ws+i); const ts=DB.get('todos_'+fmt(d),[]); ts.forEach(t=>{ if(t.wgid){ if(!counts[t.wgid]) counts[t.wgid]={tot:0,done:0}; counts[t.wgid].tot++; if(t.done) counts[t.wgid].done++; } }); }
+    setLinked(counts);
+  },[type,period,start,goals]);
   const save=g=>{ setGoals(g); DB.set(skey,g); };
-  const add=()=>{ if(!inp.trim()) return; save([...goals,{id:genId(),text:inp.trim(),done:false}]); setInp(''); };
+  const add=()=>{ if(!inp.trim()) return; save([...goals,{id:genId(),text:inp.trim(),measurable:isMeas(inp),done:false}]); setInp(''); };
   const toggle=id=>save(goals.map(g=>g.id===id?{...g,done:!g.done}:g));
   const del=id=>{ if(full) save(goals.filter(g=>g.id!==id)); };
-  const doneCount=goals.filter(g=>g.done).length;
-  const pct=goals.length?(doneCount/goals.length)*100:0;
+  let tpct=0,mc=0; goals.forEach(g=>{ if(!g.measurable) return; mc++; const lk=linked[g.id]; if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100; else if(g.done) tpct+=100; });
+  const nm=goals.filter(g=>!g.measurable),nmd=nm.filter(g=>g.done).length;
+  const ovr=goals.length===0?0:mc>0?(tpct/mc+(nm.length>0?(nmd/nm.length)*100:0))/(mc>0&&nm.length>0?2:1):nm.length>0?(nmd/nm.length)*100:0;
   return(
     <div>
       <div className={'pbanner '+(isplan?'plan':'lock')}>
@@ -712,35 +726,29 @@ function GoalList({skey,label,full,isplan,note}){
         </div>
       </div>
       <div className="card">
-        {/* Donut header */}
-        <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:14}}>
-          <Donut pct={pct} size={82} thick={9} color="#6c63ff" bg="rgba(108,99,255,0.12)" label="done"/>
-          <div style={{flex:1}}>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.05rem',color:'var(--acc2)',fontWeight:600,marginBottom:5}}>◎ {label} Goals</div>
-            <div style={{fontSize:'.78rem',color:'var(--muted)',marginBottom:3}}>{doneCount} of {goals.length} completed</div>
-            {goals.length>0&&(
-              <div style={{height:4,background:'var(--s3)',borderRadius:99,overflow:'hidden'}}>
-                <div style={{height:'100%',width:pct+'%',background:'linear-gradient(90deg,var(--acc),var(--acc2))',borderRadius:99,transition:'width .4s'}}/>
-              </div>
-            )}
-          </div>
-        </div>
+        <div className="ctitle">◎ {label} Goals</div>
+        {goals.length>0&&<PBar pct={ovr} label="Overall progress"/>}
         {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">{isplan?`Set your goals for ${label}`:`No goals set for ${label} yet`}</div></div>}
-        {goals.map(g=>(
+        {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
           <div key={g.id} className="gitem">
-            <button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
-              {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}
-            </button>
+            {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
+              {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
+            {g.measurable&&<div style={{width:20,flexShrink:0}}/>}
             <div style={{flex:1}}>
-              <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done?'line-through':'none',color:g.done?'var(--muted)':'var(--cream)'}}>{g.text}</div>
+              <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done&&!g.measurable?'line-through':'none',color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
+              <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
+                <span className={'mbdg '+(g.measurable?'y':'n')}>{g.measurable?'◉ measurable':'◌ not measurable'}</span>
+                {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--acc2)'}}>{lk.done}/{lk.tot} tasks done</span>}
+              </div>
+              {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
             </div>
             {full?<button className="tdel" onClick={()=>del(g.id)}>✕</button>:<div style={{width:22}}/>}
-          </div>
-        ))}
+          </div>);})}
         <div className="row">
           <input className="inp" placeholder={full?'Add a goal…':'Add a goal (light edit)…'} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           <button className="btn" onClick={add}>+</button>
         </div>
+        {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'Measurable — progress tracked':'Not measurable — tick manually'}</div>}
       </div>
     </div>
   );
@@ -936,6 +944,7 @@ function MeetTab({wn}){
   );
 }
 
+/* ─── App Root ─── */
 /* ─── Habits Tracker ─── */
 const DEFAULT_HABITS = ['Wake up on time','Exercise','Read / Learn','Prayer / Devotion','No social media','Drink water','Sleep on time'];
 
@@ -976,19 +985,23 @@ function HabitsTab(){
   };
 
   const delHabit=id=>saveHabits(habits.filter(h=>h.id!==id));
+
   const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
 
+  // Build week groups: [{wk:1, days:[1..7]}, ...]
   const weeks=[];
   for(let d=1;d<=daysInMo;d+=7) weeks.push({wk:Math.ceil(d/7),days:Array.from({length:Math.min(7,daysInMo-d+1)},(_,i)=>d+i)});
 
+  // Per-habit monthly stats
   const habStats = habits.map(h=>{
     const possible = Math.min(daysInMo, todayD-1+(todayD<=daysInMo?1:0));
     const done = Object.keys(checks).filter(k=>k.startsWith(h.id+'_')&&checks[k]).length;
     return {id:h.id, done, possible};
   });
 
+  // Per-week % (all habits combined)
   const wkPcts = weeks.map(({wk,days})=>{
-    const pastDays = days.filter(d=>d<todayD);
+    const pastDays = days.filter(d=>d<=todayD);
     if(!pastDays.length||!habits.length) return null;
     const total = pastDays.length * habits.length;
     const done  = pastDays.reduce((s,d)=>s+habits.filter(h=>checks[h.id+'_'+d]).length, 0);
@@ -1003,6 +1016,7 @@ function HabitsTab(){
 
   return(
     <div className="sec">
+      {/* Month nav */}
       <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
         <div className="dnav">
           <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
@@ -1011,6 +1025,7 @@ function HabitsTab(){
         </div>
       </div>
 
+      {/* Grid */}
       <div className="card" style={{padding:'12px 0 8px'}}>
         <div style={{padding:'0 14px 8px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div className="ctitle" style={{marginBottom:0}}>☑ Habit Tracker</div>
@@ -1057,6 +1072,7 @@ function HabitsTab(){
                   )))}
                 </tr>
               ))}
+              {/* % row per week */}
               <tr className="hab-prow">
                 <td className="hab-name">Progress</td>
                 {weeks.map(({wk,days},wi)=>(
@@ -1070,6 +1086,7 @@ function HabitsTab(){
         </div>
       </div>
 
+      {/* Analysis */}
       <div className="card">
         <div className="ctitle">Analysis</div>
         <div className="anl-grid">
@@ -1106,19 +1123,37 @@ function HabitsTab(){
 
 /* ─── Budget Planner ─── */
 const BUD_CATS = [
-  {id:'home',        name:'Home',                  ico:'🏠', color:'#5b8dee'},
-  {id:'dailyliving', name:'Daily Living',           ico:'🛍️', color:'#f0a500'},
-  {id:'dues',        name:'Dues',                   ico:'📋', color:'#20c997'},
-  {id:'subs',        name:'Subscriptions',          ico:'📱', color:'#a855f7'},
-  {id:'debts',       name:'Debts',                  ico:'💳', color:'#ef5350'},
-  {id:'personal',    name:'Personal Expenditure',   ico:'👤', color:'#e83e8c'},
-  {id:'investment',  name:'Investment',             ico:'📈', color:'#27ae60'},
-  {id:'savings',     name:'Savings',                ico:'💰', color:'#4caf50'},
-  {id:'misc',        name:'Misc Payments',          ico:'📌', color:'#7a7a9a'},
-  {id:'transport',   name:'Transportation',         ico:'🚗', color:'#fd7e14'},
-  {id:'groceries',   name:'Groceries',              ico:'🛒', color:'#f59e0b'},
-  {id:'care',        name:'Personal Care',          ico:'🧴', color:'#9b59b6'},
+  {id:'housing',   name:'Housing',        ico:'🏠', color:'#5b8dee', sub:['Rent/Mortgage','Utilities','Internet','Insurance']},
+  {id:'food',      name:'Food & Groceries',ico:'🛒', color:'#f0a500', sub:['Groceries','Eating out','Coffee/Snacks']},
+  {id:'transport', name:'Transport',       ico:'🚗', color:'#20c997', sub:['Fuel','Public transport','Car insurance','Parking']},
+  {id:'health',    name:'Health',          ico:'❤️', color:'#ef5350', sub:['GP/Pharmacy','Gym','Supplements']},
+  {id:'personal',  name:'Personal Care',   ico:'🧴', color:'#9b59b6', sub:['Haircut','Clothing','Skincare']},
+  {id:'faith',     name:'Church / Faith',  ico:'✝️', color:'#6c63ff', sub:['Tithe','Giving','Events']},
+  {id:'entertain', name:'Entertainment',   ico:'🎬', color:'#fd7e14', sub:['Streaming','Events','Hobbies']},
+  {id:'shopping',  name:'Shopping',        ico:'🛍️', color:'#e83e8c', sub:['Online','Electronics','Home']},
+  {id:'savings',   name:'Savings',         ico:'💰', color:'#27ae60', sub:['Emergency fund','Investments','Goals']},
+  {id:'other',     name:'Other',           ico:'📌', color:'#7a7a9a', sub:['Misc']},
 ];
+
+const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const FULL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function SmallDonut({pct,color='#6c63ff',size=56}){
+  const thick=6,r=(size-thick)/2,circ=2*Math.PI*r,dash=Math.min(pct,100)/100*circ;
+  return(
+    <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
+      <svg width={size} height={size} style={{transform:'rotate(-90deg)',display:'block'}}>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={thick}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={thick}
+          strokeDasharray={dash+' '+circ} strokeLinecap="round"/>
+      </svg>
+      <div style={{position:'absolute',inset:0,display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:'.58rem',fontWeight:700,color:pct>0?color:'var(--muted)'}}>
+        {Math.round(pct)}%
+      </div>
+    </div>
+  );
+}
 
 function BudgetTab(){
   const now=new Date();
@@ -1130,6 +1165,7 @@ function BudgetTab(){
   const [txs,setTxs]=useState([]);
   const [form,setForm]=useState({desc:'',amount:'',catId:'food',type:'expense',date:todayStr()});
   const [showForm,setShowForm]=useState(false);
+  const [annualIncome,setAnnualIncome]=useState({});
   const [savingGoal,setSavingGoal]=useState('');
 
   const moKey=yr+'-'+String(mo+1).padStart(2,'0');
@@ -1138,12 +1174,14 @@ function BudgetTab(){
     setBudgets(DB.get('bud_budgets_'+moKey,{}));
     setIncome(DB.get('bud_income_'+moKey,{salary:'',other:'',other2:''}));
     setTxs(DB.get('bud_txs_'+moKey,[]));
+    setAnnualIncome(DB.get('bud_annual_income_'+yr,{}));
     setSavingGoal(DB.get('bud_saving_goal',''));
-  },[moKey]);
+  },[moKey,yr]);
 
   const saveBudgets=b=>{setBudgets(b);DB.set('bud_budgets_'+moKey,b);};
   const saveIncome=v=>{setIncome(v);DB.set('bud_income_'+moKey,v);};
   const saveTxs=t=>{setTxs(t);DB.set('bud_txs_'+moKey,t);};
+  const saveAnnual=v=>{setAnnualIncome(v);DB.set('bud_annual_income_'+yr,v);};
 
   const navMo=dir=>{let m=mo+dir,y=yr;if(m<0){m=11;y--;}if(m>11){m=0;y++;}setMo(m);setYr(y);};
   const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
@@ -1164,6 +1202,7 @@ function BudgetTab(){
     setShowForm(false);
   };
 
+  // Annual: get all 12 months spending
   const getMonthSpent=m=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
     const t=DB.get('bud_txs_'+mk,[]);
@@ -1186,14 +1225,14 @@ function BudgetTab(){
       <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
         <div className="dnav">
           <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
-          <div className="dlbl">{MONTHS[mo]} {yr}</div>
+          <div className="dlbl">{FULL_MONTHS[mo]} {yr}</div>
           <button className="dnbtn" onClick={()=>navMo(1)}>›</button>
         </div>
       </div>
 
       {/* Sub-tabs */}
       <div className="stabs">
-        {[['overview','Overview'],['monthly','Monthly'],['annual','Annual'],['income','Income & Budgets'],['transactions','Transactions']].map(([id,lbl])=>(
+        {[['overview','Overview'],['monthly','Monthly'],['annual','Annual Plan'],['income','Income & Budgets'],['transactions','Transactions']].map(([id,lbl])=>(
           <button key={id} className={'stab'+(sub===id?' on':'')} onClick={()=>setSub(id)}>{lbl}</button>
         ))}
       </div>
@@ -1201,12 +1240,14 @@ function BudgetTab(){
       {/* ── OVERVIEW ── */}
       {sub==='overview'&&(
         <>
-          <div className="bsum">
+          {/* Summary cards */}
+          <div className="bsum" style={{gridTemplateColumns:'1fr 1fr 1fr',marginBottom:12}}>
             <div className="bstat"><div className="bnum neu">{fp(totalIncome)}</div><div className="blbl">Income</div></div>
             <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl">Spent</div></div>
             <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl">Left</div></div>
           </div>
 
+          {/* Overall donut + spending bar */}
           <div className="card">
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
               <Donut pct={overallPct} size={80} thick={8} color={overallPct>90?'#ef5350':overallPct>75?'#f59e0b':'#6c63ff'} label="budget"/>
@@ -1255,6 +1296,8 @@ function BudgetTab(){
                 </div>
               </div>
             )}
+
+            {/* Category breakdown */}
             {BUD_CATS.map(cat=>{
               const spent=spentByCat(cat.id);
               const bud=parseFloat(budgets[cat.id])||0;
@@ -1307,7 +1350,7 @@ function BudgetTab(){
             })}
           </div>
           <div style={{marginTop:16}}>
-            <div className="ctitle" style={{fontSize:'.9rem',marginBottom:8}}>Category Breakdown — {MONTHS[mo]}</div>
+            <div className="ctitle" style={{fontSize:'.9rem',marginBottom:8}}>Category Breakdown — {FULL_MONTHS[mo]}</div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
               {BUD_CATS.map(cat=>{
                 const spent=spentByCat(cat.id);
@@ -1349,6 +1392,7 @@ function BudgetTab(){
                 </tr>
               </thead>
               <tbody>
+                {/* Income section */}
                 <tr style={{background:'rgba(76,175,80,.12)'}}>
                   <td colSpan={14} style={{padding:'5px 10px',fontSize:'.65rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>REVENUE</td>
                 </tr>
@@ -1373,6 +1417,7 @@ function BudgetTab(){
                     </tr>
                   );
                 })}
+                {/* Total income row */}
                 <tr style={{background:'rgba(76,175,80,.08)',borderTop:'1px solid rgba(76,175,80,.2)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>Total Income</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1383,6 +1428,7 @@ function BudgetTab(){
                     £{Array.from({length:12},(_,m)=>getMonthIncome(m)).reduce((s,v)=>s+v,0).toFixed(0)}
                   </td>
                 </tr>
+                {/* Expenses by category */}
                 <tr style={{background:'rgba(239,83,80,.1)'}}>
                   <td colSpan={14} style={{padding:'5px 10px',fontSize:'.65rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'var(--danger)',position:'sticky',left:0,background:'rgba(239,83,80,.1)'}}>EXPENSES</td>
                 </tr>
@@ -1403,6 +1449,7 @@ function BudgetTab(){
                     </tr>
                   );
                 })}
+                {/* Total expenses */}
                 <tr style={{background:'rgba(239,83,80,.08)',borderTop:'1px solid rgba(239,83,80,.2)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--danger)',position:'sticky',left:0,background:'rgba(239,83,80,.1)'}}>Total Expenses</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1413,6 +1460,7 @@ function BudgetTab(){
                     £{Array.from({length:12},(_,m)=>getMonthSpent(m)).reduce((s,v)=>s+v,0).toFixed(0)}
                   </td>
                 </tr>
+                {/* Savings */}
                 <tr style={{background:'rgba(108,99,255,.08)',borderTop:'1px solid rgba(108,99,255,.15)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--acc2)',position:'sticky',left:0,background:'rgba(108,99,255,.1)'}}>💰 Net Savings</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1432,7 +1480,7 @@ function BudgetTab(){
       {/* ── INCOME & BUDGETS ── */}
       {sub==='income'&&(
         <div className="card">
-          <div className="ctitle">💷 Income — {MONTHS[mo]}</div>
+          <div className="ctitle">💷 Income — {FULL_MONTHS[mo]}</div>
           {[['salary','Salary / Main Income'],['other','Other Income'],['other2','Additional Income']].map(([k,lbl])=>(
             <div className="frow" key={k}>
               <label className="flbl">{lbl} (£)</label>
@@ -1450,7 +1498,7 @@ function BudgetTab(){
               onChange={e=>{setSavingGoal(e.target.value);DB.set('bud_saving_goal',e.target.value);}}/>
           </div>
           <div style={{height:1,background:'var(--bdr)',margin:'14px 0'}}/>
-          <div className="ctitle" style={{marginBottom:10}}>Category Budgets — {MONTHS[mo]}</div>
+          <div className="ctitle" style={{marginBottom:10}}>Category Budgets — {FULL_MONTHS[mo]}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             {BUD_CATS.map(cat=>(
               <div key={cat.id} style={{background:'var(--s2)',borderRadius:8,padding:'9px 10px'}}>
@@ -1468,7 +1516,7 @@ function BudgetTab(){
       {sub==='transactions'&&(
         <div className="card">
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
-            <div className="ctitle" style={{marginBottom:0}}>Transactions — {MONTHS[mo]}</div>
+            <div className="ctitle" style={{marginBottom:0}}>Transactions — {FULL_MONTHS[mo]}</div>
             <button className="btn btnsm" onClick={()=>{setSub('overview');setShowForm(true);}}>+ Add</button>
           </div>
           <div style={{display:'flex',gap:8,marginBottom:10,fontSize:'.75rem'}}>
@@ -1506,6 +1554,411 @@ function BudgetTab(){
 }
 
 /* ─── App Root ─── */
+/* ─── Habits Tracker ─── */
+const DEFAULT_HABITS = ['Wake up on time','Exercise','Read / Learn','Prayer / Devotion','No social media','Drink water','Sleep on time'];
+
+function HabitsTab(){
+  const now = new Date();
+  const [yr,setYr]   = useState(now.getFullYear());
+  const [mo,setMo]   = useState(now.getMonth());
+  const [habits,setHabits] = useState([]);
+  const [checks,setChecks] = useState({});
+  const [newHab,setNewHab] = useState('');
+  const [showAdd,setShowAdd] = useState(false);
+
+  const moKey = `${yr}-${String(mo+1).padStart(2,'0')}`;
+  const daysInMo = new Date(yr,mo+1,0).getDate();
+  const todayD = now.getFullYear()===yr && now.getMonth()===mo ? now.getDate() : (now.getFullYear()>yr||(now.getFullYear()===yr&&now.getMonth()>mo)?daysInMo+1:0);
+
+  useEffect(()=>{
+    const h = DB.get('habits_list', DEFAULT_HABITS.map((t,i)=>({id:'h'+i,text:t})));
+    setHabits(h);
+    setChecks(DB.get('habits_checks_'+moKey,{}));
+  },[moKey]);
+
+  const saveHabits = h=>{ setHabits(h); DB.set('habits_list',h); };
+  const saveChecks = c=>{ setChecks(c); DB.set('habits_checks_'+moKey,c); };
+
+  const toggle = (hid,day)=>{
+    if(day>todayD) return;
+    const k=hid+'_'+day;
+    const nc={...checks,[k]:!checks[k]};
+    if(!nc[k]) delete nc[k];
+    saveChecks(nc);
+  };
+
+  const addHabit=()=>{
+    if(!newHab.trim()) return;
+    saveHabits([...habits,{id:genId(),text:newHab.trim()}]);
+    setNewHab(''); setShowAdd(false);
+  };
+
+  const delHabit=id=>saveHabits(habits.filter(h=>h.id!==id));
+
+  const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
+
+  // Build week groups: [{wk:1, days:[1..7]}, ...]
+  const weeks=[];
+  for(let d=1;d<=daysInMo;d+=7) weeks.push({wk:Math.ceil(d/7),days:Array.from({length:Math.min(7,daysInMo-d+1)},(_,i)=>d+i)});
+
+  // Per-habit monthly stats
+  const habStats = habits.map(h=>{
+    const possible = Math.min(daysInMo, todayD-1+(todayD<=daysInMo?1:0));
+    const done = Object.keys(checks).filter(k=>k.startsWith(h.id+'_')&&checks[k]).length;
+    return {id:h.id, done, possible};
+  });
+
+  // Per-week % (all habits combined)
+  const wkPcts = weeks.map(({wk,days})=>{
+    const pastDays = days.filter(d=>d<=todayD);
+    if(!pastDays.length||!habits.length) return null;
+    const total = pastDays.length * habits.length;
+    const done  = pastDays.reduce((s,d)=>s+habits.filter(h=>checks[h.id+'_'+d]).length, 0);
+    return Math.round((done/total)*100);
+  });
+
+  const monthDone = habStats.reduce((s,h)=>s+h.done,0);
+  const monthPoss = habStats.reduce((s,h)=>s+h.possible,0);
+  const monthPct  = monthPoss>0?Math.round((monthDone/monthPoss)*100):0;
+
+  const dayName = d => { const dt=new Date(yr,mo,d); return DAYS[dt.getDay()].slice(0,1); };
+
+  return(
+    <div className="sec">
+      {/* Month nav */}
+      <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
+        <div className="dnav">
+          <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
+          <div className="dlbl">{MONTHS[mo]} {yr} — {monthPct}% complete</div>
+          <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="card" style={{padding:'12px 0 8px'}}>
+        <div style={{padding:'0 14px 8px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div className="ctitle" style={{marginBottom:0}}>☑ Habit Tracker</div>
+          <button className="btn btnsm" onClick={()=>setShowAdd(v=>!v)}>+ Habit</button>
+        </div>
+        {showAdd&&(
+          <div style={{padding:'0 14px 10px',display:'flex',gap:7}}>
+            <input className="inp inp-sm" placeholder="New habit…" value={newHab} autoFocus
+              onChange={e=>setNewHab(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addHabit()}/>
+            <button className="btn btnsm" onClick={addHabit}>Add</button>
+          </div>
+        )}
+        <div className="hab-wrap">
+          <table className="hab-tbl">
+            <thead>
+              <tr>
+                <th className="hab-name" style={{fontSize:'.62rem',color:'var(--muted)',fontWeight:600,paddingBottom:2}}>My Habits</th>
+                {weeks.map(({wk,days})=><th key={wk} className="hab-wh" colSpan={days.length}>Week {wk}</th>)}
+              </tr>
+              <tr>
+                <th className="hab-name" style={{paddingTop:2}}></th>
+                {weeks.flatMap(({days})=>days.map(d=>(
+                  <th key={d} className="hab-dh">
+                    <div style={{color:d===todayD?'var(--gold)':'',fontWeight:d===todayD?700:400}}>{d}</div>
+                    <div style={{fontSize:'.52rem',opacity:.6}}>{dayName(d)}</div>
+                  </th>
+                )))}
+              </tr>
+            </thead>
+            <tbody>
+              {habits.map(h=>(
+                <tr key={h.id}>
+                  <td className="hab-name">
+                    <span style={{cursor:'pointer'}} onClick={()=>delHabit(h.id)} title="tap to remove">✕ </span>
+                    {h.text}
+                  </td>
+                  {weeks.flatMap(({days})=>days.map(d=>(
+                    <td key={d} className="hab-c">
+                      <button className={`hck ${checks[h.id+'_'+d]?'on':''} ${d>todayD?'fut':''}`}
+                        onClick={()=>toggle(h.id,d)}>
+                        {checks[h.id+'_'+d]?'✓':''}
+                      </button>
+                    </td>
+                  )))}
+                </tr>
+              ))}
+              {/* % row per week */}
+              <tr className="hab-prow">
+                <td className="hab-name">Progress</td>
+                {weeks.map(({wk,days},wi)=>(
+                  <td key={wk} colSpan={days.length} style={{textAlign:'center',fontSize:'.65rem',color:wkPcts[wi]!==null?(wkPcts[wi]>=80?'var(--ok)':wkPcts[wi]>=50?'var(--gold2)':'var(--danger)'):'var(--muted)',fontWeight:600,paddingTop:4,borderTop:'1px solid var(--bdr)'}}>
+                    {wkPcts[wi]!==null?wkPcts[wi]+'%':'—'}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Analysis */}
+      <div className="card">
+        <div className="ctitle">Analysis</div>
+        <div className="anl-grid">
+          <div className="anl-h">Habit</div>
+          <div className="anl-h" style={{textAlign:'center'}}>Goal</div>
+          <div className="anl-h" style={{textAlign:'center'}}>Done</div>
+          <div className="anl-h">Progress</div>
+          {habits.map(h=>{
+            const st=habStats.find(s=>s.id===h.id)||{done:0,possible:0};
+            const pct=st.possible>0?Math.round((st.done/st.possible)*100):0;
+            const barCls=pct>=80?'':pct>=50?'warn':'bad';
+            return(<React.Fragment key={h.id}>
+              <div className="anl-c" style={{fontSize:'.76rem',borderBottom:'1px solid rgba(255,255,255,.04)'}}>{h.text}</div>
+              <div className="anl-c" style={{justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,.04)'}}>{st.possible}</div>
+              <div className="anl-c" style={{justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,.04)'}}>{st.done}</div>
+              <div className="anl-c" style={{gap:6,borderBottom:'1px solid rgba(255,255,255,.04)'}}>
+                <div className="anl-bar-wrap"><div className={`anl-bar ${barCls}`} style={{width:pct+'%'}}/></div>
+                <span style={{fontSize:'.65rem',color:'var(--muted)',flexShrink:0,width:28,textAlign:'right'}}>{pct}%</span>
+              </div>
+            </React.Fragment>);
+          })}
+        </div>
+        <div style={{marginTop:12,display:'flex',alignItems:'center',gap:10,background:'var(--s3)',borderRadius:8,padding:'10px 12px'}}>
+          <div style={{flex:1}}>
+            <div style={{fontSize:'.72rem',color:'var(--muted)',marginBottom:4}}>Overall Month Progress</div>
+            <div className="anl-bar-wrap" style={{height:7}}><div className="anl-bar" style={{width:monthPct+'%'}}/></div>
+          </div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem',color:'var(--acc2)',fontWeight:600}}>{monthPct}%</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Budget Planner ─── */
+const BUD_CATS = [
+  {id:'housing',    name:'Housing',       ico:'🏠', color:'#5b8dee'},
+  {id:'food',       name:'Food & Groceries', ico:'🛒', color:'#f0a500'},
+  {id:'transport',  name:'Transport',     ico:'🚗', color:'#20c997'},
+  {id:'health',     name:'Health',        ico:'❤️', color:'#e74c3c'},
+  {id:'personal',   name:'Personal Care', ico:'🧴', color:'#9b59b6'},
+  {id:'faith',      name:'Church / Faith',ico:'✝️', color:'var(--gold)'},
+  {id:'entertain',  name:'Entertainment', ico:'🎬', color:'#fd7e14'},
+  {id:'shopping',   name:'Shopping',      ico:'🛍️', color:'#e83e8c'},
+  {id:'savings',    name:'Savings',       ico:'💰', color:'#27ae60'},
+  {id:'other',      name:'Other',         ico:'📌', color:'var(--muted)'},
+];
+
+function BudgetTab(){
+  const now=new Date();
+  const [yr,setYr]=useState(now.getFullYear());
+  const [mo,setMo]=useState(now.getMonth());
+  const [sub,setSub]=useState('overview');
+  const [budgets,setBudgets]=useState({});   // catId -> budget amount
+  const [income,setIncome]=useState({salary:'',other:''});
+  const [txs,setTxs]=useState([]);           // transactions
+  const [form,setForm]=useState({desc:'',amount:'',catId:'food',type:'expense'});
+  const [showForm,setShowForm]=useState(false);
+
+  const moKey=`${yr}-${String(mo+1).padStart(2,'0')}`;
+
+  useEffect(()=>{
+    setBudgets(DB.get('bud_budgets_'+moKey,{}));
+    setIncome(DB.get('bud_income_'+moKey,{salary:'',other:''}));
+    setTxs(DB.get('bud_txs_'+moKey,[]));
+  },[moKey]);
+
+  const saveBudgets=b=>{ setBudgets(b); DB.set('bud_budgets_'+moKey,b); };
+  const saveIncome=v=>{ setIncome(v); DB.set('bud_income_'+moKey,v); };
+  const saveTxs=t=>{ setTxs(t); DB.set('bud_txs_'+moKey,t); };
+
+  const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
+
+  const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0);
+  const totalSpent=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const savings=totalIncome-totalSpent;
+
+  const spentByCat=cat=>txs.filter(t=>t.catId===cat&&t.type==='expense').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+
+  const addTx=()=>{
+    if(!form.desc.trim()||!form.amount) return;
+    saveTxs([{id:genId(),date:todayStr(),...form,amount:parseFloat(form.amount)},  ...txs]);
+    setForm({desc:'',amount:'',catId:'food',type:'expense'}); setShowForm(false);
+  };
+
+  const fmt2=n=>n<0?`-£${Math.abs(n).toFixed(2)}`:`£${n.toFixed(2)}`;
+  const fmtp=n=>`£${(parseFloat(n)||0).toFixed(2)}`;
+
+  return(
+    <div className="sec">
+      {/* Month nav */}
+      <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
+        <div className="dnav">
+          <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
+          <div className="dlbl">{MONTHS[mo]} {yr} Budget</div>
+          <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="bsum">
+        <div className="bstat">
+          <div className={`bnum neu`}>{fmtp(totalIncome)}</div>
+          <div className="blbl">Income</div>
+        </div>
+        <div className="bstat">
+          <div className="bnum neg">{fmtp(totalSpent)}</div>
+          <div className="blbl">Spent</div>
+        </div>
+        <div className="bstat">
+          <div className={`bnum ${savings>=0?'pos':'neg'}`}>{fmt2(savings)}</div>
+          <div className="blbl">Left</div>
+        </div>
+      </div>
+
+      {/* Sub tabs */}
+      <div className="stabs">
+        {['overview','income','transactions'].map(s=>(
+          <button key={s} className={'stab'+(sub===s?' on':'')} onClick={()=>setSub(s)}
+            style={{textTransform:'capitalize'}}>{s}</button>))}
+      </div>
+
+      {/* Overview — categories */}
+      {sub==='overview'&&(
+        <>
+          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8}}>
+            <button className="btn btnsm" onClick={()=>setShowForm(v=>!v)}>+ Add Transaction</button>
+          </div>
+          {showForm&&(
+            <div className="card" style={{marginBottom:11}}>
+              <div className="ctitle" style={{marginBottom:10}}>Add Transaction</div>
+              <div className="frow">
+                <label className="flbl">Type</label>
+                <div style={{display:'flex',gap:6}}>
+                  {['expense','income'].map(t=>(
+                    <button key={t} className={'btn btnsm '+(form.type===t?'':'btng')} onClick={()=>setForm(f=>({...f,type:t}))}
+                      style={{flex:1,textTransform:'capitalize'}}>{t}</button>))}
+                </div>
+              </div>
+              <div className="frow">
+                <label className="flbl">Description</label>
+                <input className="inp inp-sm" placeholder="e.g. Tesco shop" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))}/>
+              </div>
+              <div className="grid2" style={{marginBottom:11}}>
+                <div>
+                  <label className="flbl">Amount (£)</label>
+                  <input className="inp inp-sm" type="number" placeholder="0.00" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))}/>
+                </div>
+                <div>
+                  <label className="flbl">Category</label>
+                  <select className="inp inp-sm" value={form.catId} onChange={e=>setForm(f=>({...f,catId:e.target.value}))}>
+                    {BUD_CATS.map(c=><option key={c.id} value={c.id}>{c.ico} {c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:7}}>
+                <button className="btn btng" onClick={()=>setShowForm(false)} style={{flex:1}}>Cancel</button>
+                <button className="btn" onClick={addTx} style={{flex:1}}>Add</button>
+              </div>
+            </div>
+          )}
+          <div className="card">
+            <div className="ctitle">Spending by Category</div>
+            {BUD_CATS.map(cat=>{
+              const spent=spentByCat(cat.id);
+              const bud=parseFloat(budgets[cat.id])||0;
+              const pct=bud>0?Math.min(100,(spent/bud)*100):0;
+              const over=bud>0&&spent>bud;
+              if(spent===0&&bud===0) return null;
+              return(
+                <div key={cat.id} className="bcat">
+                  <div className="bcat-ico">{cat.ico}</div>
+                  <div className="bcat-info">
+                    <div className="bcat-top">
+                      <span>{cat.name}</span>
+                      <span style={{color:over?'var(--danger)':'var(--cream)',fontSize:'.8rem',fontWeight:600}}>{fmtp(spent)}{bud>0&&<span style={{color:'var(--muted)',fontWeight:400}}> / {fmtp(bud)}</span>}</span>
+                    </div>
+                    {bud>0&&(
+                      <div className="bbar-w">
+                        <div className="bbar" style={{width:pct+'%',background:over?'var(--danger)':pct>75?'var(--gold)':'var(--ok)'}}/>
+                      </div>
+                    )}
+                    <div className="bcat-sub">{bud>0?`${Math.round(pct)}% of budget used`:`No budget set — `}
+                      {bud===0&&<span style={{cursor:'pointer',color:'var(--gold)',textDecoration:'underline'}}
+                        onClick={()=>{ const v=prompt(`Budget for ${cat.name} (£)?`); if(v) saveBudgets({...budgets,[cat.id]:parseFloat(v)||0}); }}>set one</span>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {txs.filter(t=>t.type==='expense').length===0&&(
+              <div className="empty" style={{padding:'16px 0'}}>
+                <div className="eico">💸</div>
+                <div className="etxt">No transactions yet — tap + Add Transaction</div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Income tab */}
+      {sub==='income'&&(
+        <div className="card">
+          <div className="ctitle">💷 Monthly Income</div>
+          <div className="frow">
+            <label className="flbl">Salary / Main Income (£)</label>
+            <input className="inp" type="number" placeholder="0.00" value={income.salary}
+              onChange={e=>saveIncome({...income,salary:e.target.value})}/>
+          </div>
+          <div className="frow">
+            <label className="flbl">Other Income (£)</label>
+            <input className="inp" type="number" placeholder="0.00" value={income.other}
+              onChange={e=>saveIncome({...income,other:e.target.value})}/>
+          </div>
+          <div style={{background:'var(--s3)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <span style={{fontSize:'.82rem',color:'var(--muted)'}}>Total Income</span>
+            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.3rem',color:'var(--gold)',fontWeight:600}}>{fmtp(totalIncome)}</span>
+          </div>
+          <div className="divider"/>
+          <div className="ctitle" style={{marginBottom:10}}>Category Budgets</div>
+          {BUD_CATS.map(cat=>(
+            <div key={cat.id} className="bcat" style={{paddingTop:6,paddingBottom:6}}>
+              <div className="bcat-ico">{cat.ico}</div>
+              <div className="bcat-info">
+                <label className="flbl" style={{marginBottom:3}}>{cat.name}</label>
+                <input className="inp inp-sm" type="number" placeholder="£ budget" value={budgets[cat.id]||''}
+                  onChange={e=>saveBudgets({...budgets,[cat.id]:e.target.value})}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Transactions */}
+      {sub==='transactions'&&(
+        <div className="card">
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
+            <div className="ctitle" style={{marginBottom:0}}>All Transactions</div>
+            <button className="btn btnsm" onClick={()=>{setSub('overview');setShowForm(true);}}>+ Add</button>
+          </div>
+          {txs.length===0&&<div className="empty"><div className="eico">📋</div><div className="etxt">No transactions yet</div></div>}
+          {txs.map(t=>{
+            const cat=BUD_CATS.find(c=>c.id===t.catId)||BUD_CATS[BUD_CATS.length-1];
+            return(
+              <div key={t.id} className="btx-row">
+                <span className="btx-ico">{cat.ico}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div className="btx-name">{t.desc}</div>
+                  <div className="btx-cat">{cat.name} · {t.date}</div>
+                </div>
+                <span className="btx-amt" style={{color:t.type==='income'?'var(--ok)':'var(--cream)'}}>
+                  {t.type==='income'?'+':'-'}{fmtp(t.amount)}
+                </span>
+                <button className="btx-del" onClick={()=>saveTxs(txs.filter(x=>x.id!==t.id))}>✕</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const TABS=[
   {id:'daily', ico:'✦',lbl:'Today'},
   {id:'goals', ico:'◎',lbl:'Goals'},
@@ -1525,13 +1978,18 @@ function App(){
   const [showSync,setShowSync]=useState(false);
 
   useEffect(()=>{
+    // Subscribe to sync status updates
     Sync.onStatus(setSyncStatus);
+
+    // Init sync if credentials exist, then load start date
     const initApp = async () => {
       const syncUrl = DB.get('sync_url',null);
       const syncKey = DB.get('sync_key',null);
       if(syncUrl && syncKey){
+        // Pull remote data first so all tabs see up-to-date data
         await Sync.init(syncUrl, syncKey);
       }
+      // Now read start date (may have just been pulled from remote)
       const s = DB.get('start', null);
       setStart(s);
       setSyncReady(true);
@@ -1541,6 +1999,7 @@ function App(){
 
   const onSetup = d => { DB.set('start',d); setStart(d); };
 
+  // Loading
   if(!syncReady) return(
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:14}}>
       <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.8rem',color:'var(--gold)'}}>Journey</div>
@@ -1569,6 +2028,7 @@ function App(){
             <span className="chip">Mo {mn}</span>
             <span className="chip">Yr {yn}</span>
           </div>
+          {/* Sync status dot */}
           <div
             className={'syncdot '+syncStatus}
             onClick={()=>setShowSync(true)}
