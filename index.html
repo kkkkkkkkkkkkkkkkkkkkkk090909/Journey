@@ -1099,16 +1099,18 @@ function HabitsTab(){
 
 /* ─── Budget Planner ─── */
 const BUD_CATS = [
-  {id:'housing',   name:'Housing',         ico:'🏠', color:'#5b8dee', sub:['Rent/Mortgage','Utilities','Internet','Insurance']},
-  {id:'food',      name:'Food & Groceries', ico:'🛒', color:'#f0a500', sub:['Groceries','Eating out','Coffee/Snacks']},
-  {id:'transport', name:'Transport',        ico:'🚗', color:'#20c997', sub:['Fuel','Public transport','Car insurance','Parking']},
-  {id:'health',    name:'Health',           ico:'❤️', color:'#ef5350', sub:['GP/Pharmacy','Gym','Supplements']},
-  {id:'personal',  name:'Personal Care',    ico:'🧴', color:'#9b59b6', sub:['Haircut','Clothing','Skincare']},
-  {id:'faith',     name:'Church / Faith',   ico:'✝️', color:'#6c63ff', sub:['Tithe','Giving','Events']},
-  {id:'entertain', name:'Entertainment',    ico:'🎬', color:'#fd7e14', sub:['Streaming','Events','Hobbies']},
-  {id:'shopping',  name:'Shopping',         ico:'🛍️', color:'#e83e8c', sub:['Online','Electronics','Home']},
-  {id:'savings',   name:'Savings',          ico:'💰', color:'#27ae60', sub:['Emergency fund','Investments','Goals']},
-  {id:'other',     name:'Other',            ico:'📌', color:'#7a7a9a', sub:['Misc']},
+  {id:'home',        name:'Home',                ico:'🏠', color:'#5b8dee', sub:['Rent/Mortgage','Utilities','Internet','Insurance']},
+  {id:'dailyliving', name:'Daily Living',         ico:'🛍️', color:'#fd7e14', sub:['Eating out','Coffee','Household items','Misc daily']},
+  {id:'dues',        name:'Dues',                 ico:'📋', color:'#20c997', sub:['Memberships','Union dues','Professional fees']},
+  {id:'subs',        name:'Subscriptions',        ico:'📱', color:'#6c63ff', sub:['Streaming','Apps','Software','Cloud storage']},
+  {id:'debts',       name:'Debts',                ico:'💳', color:'#ef5350', sub:['Credit card','Loan repayment','Finance']},
+  {id:'personal',    name:'Personal Expenditure', ico:'👤', color:'#e83e8c', sub:['Clothing','Leisure','Gifts','Hobbies']},
+  {id:'investment',  name:'Investment',           ico:'📈', color:'#f0a500', sub:['Stocks','Crypto','Pension','ISA']},
+  {id:'savings',     name:'Savings',              ico:'💰', color:'#27ae60', sub:['Emergency fund','Goals','Long-term']},
+  {id:'misc',        name:'Misc Payments',        ico:'📌', color:'#7a7a9a', sub:['Other','One-off payments']},
+  {id:'transport',   name:'Transportation',       ico:'🚗', color:'#4aaee0', sub:['Fuel','Public transport','Car insurance','Parking']},
+  {id:'groceries',   name:'Groceries',            ico:'🛒', color:'#e8a000', sub:['Supermarket','Fresh produce','Bulk shopping']},
+  {id:'personalcare',name:'Personal Care',        ico:'🧴', color:'#9b59b6', sub:['Haircut','Skincare','Toiletries','Gym']},
 ];
 
 const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1139,7 +1141,7 @@ function BudgetTab(){
   const [budgets,setBudgets]=useState({});
   const [income,setIncome]=useState({salary:'',other:'',other2:''});
   const [txs,setTxs]=useState([]);
-  const [form,setForm]=useState({desc:'',amount:'',catId:'food',type:'expense',date:todayStr()});
+  const [form,setForm]=useState({desc:'',amount:'',catId:'dailyliving',type:'expense',date:todayStr()});
   const [showForm,setShowForm]=useState(false);
   const [savingGoal,setSavingGoal]=useState('');
 
@@ -1171,7 +1173,7 @@ function BudgetTab(){
   const addTx=()=>{
     if(!form.desc.trim()||!form.amount) return;
     saveTxs([{id:genId(),...form,amount:parseFloat(form.amount)},...txs]);
-    setForm({desc:'',amount:'',catId:'food',type:'expense',date:todayStr()});
+    setForm({desc:'',amount:'',catId:'dailyliving',type:'expense',date:todayStr()});
     setShowForm(false);
   };
 
