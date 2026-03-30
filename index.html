@@ -8,7 +8,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{--bg:#07080f;--sf:#0e1120;--s2:#151929;--s3:#1c2138;--gold:#6c63ff;--gold2:#a89cff;--cream:#e8eaf6;--muted:#5a6080;--danger:#ef5350;--ok:#4caf50;--bdr:rgba(108,99,255,.18);--acc:#6c63ff;--acc2:#a89cff;--card:#111426}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -187,7 +186,6 @@ select.inp option{background:var(--s2)}
 .bstat{background:var(--s3);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid var(--bdr)}
 .bnum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;line-height:1}
 .bnum.pos{color:var(--ok)}.bnum.neg{color:var(--danger)}.bnum.neu{color:var(--acc2)}
-.blbl{font-size:.58rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
 .bcat{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .bcat:last-child{border-bottom:none}
 .bcat-ico{font-size:1.05rem;flex-shrink:0;width:22px;text-align:center}
@@ -237,7 +235,7 @@ const Sync = (() => {
   let _status = 'offline';
   let _listeners = [];
   let _timer = null;
-  let _pending = {}; // key -> val, batched upserts
+  let _pending = {};
 
   const notify = s => { _status=s; _listeners.forEach(fn=>fn(s)); };
   const onStatus = fn => { _listeners.push(fn); return ()=>{ _listeners=_listeners.filter(f=>f!==fn); }; };
@@ -254,8 +252,18 @@ alter table journey_data enable row level security;
 create policy "anon_all" on journey_data
   for all to anon using (true) with check (true);`;
 
+  const loadSupabase = () => new Promise((resolve, reject) => {
+    if(window.supabase) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+
   const init = async (url, key) => {
     try {
+      await loadSupabase();
       _client = window.supabase.createClient(url, key);
       notify('syncing');
       await pullAll();
@@ -331,7 +339,7 @@ function DateNav({date,setDate,maxToday}){
 
 /* ─── Sync Setup Modal ─── */
 function SyncModal({onClose, onSynced}){
-  const [step, setStep] = useState('check'); // check | setup | done
+  const [step, setStep] = useState('check');
   const [url, setUrl]   = useState(DB.get('sync_url','')||'');
   const [key, setKey]   = useState(DB.get('sync_key','')||'');
   const [status, setStatus] = useState(Sync.getStatus());
@@ -347,7 +355,7 @@ function SyncModal({onClose, onSynced}){
   const copySQL = () => {
     navigator.clipboard.writeText(Sync.SQL).then(()=>{
       setCopied(true); setTimeout(()=>setCopied(false),2000);
-    }).catch(()=>{ /* fallback: select text */ });
+    }).catch(()=>{});
   };
 
   const connect = async () => {
@@ -378,7 +386,6 @@ function SyncModal({onClose, onSynced}){
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
         <div className="mtitle">☁ Sync Across Devices</div>
-
         {step==='done' ? (
           <>
             <div className={`sync-status-row ${status}`}>
@@ -401,7 +408,6 @@ function SyncModal({onClose, onSynced}){
             <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:16}}>
               Follow these steps to sync your Journey data across your phone and laptop for free. Takes about 5 minutes.
             </p>
-
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
@@ -409,7 +415,6 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">Go to <strong style={{color:'var(--gold2)'}}>supabase.com</strong> and click "Start your project". Sign up with GitHub or email (it's free).</div>
               </div>
             </div>
-
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
@@ -417,7 +422,6 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">Click "New project". Give it any name (e.g. "journey"). Choose a region close to you. Set any database password. Wait ~2 minutes for it to start.</div>
               </div>
             </div>
-
             <div className="step">
               <div className="step-num">3</div>
               <div className="step-body">
@@ -429,7 +433,6 @@ function SyncModal({onClose, onSynced}){
                 {!copied && <div style={{fontSize:'.7rem',color:'var(--muted)',marginTop:4}}>Tap the box above to copy</div>}
               </div>
             </div>
-
             <div className="step">
               <div className="step-num">4</div>
               <div className="step-body">
@@ -437,7 +440,6 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">In Supabase, go to <strong style={{color:'var(--cream)'}}>Settings → API</strong>. Copy your <strong style={{color:'var(--cream)'}}>Project URL</strong> and your <strong style={{color:'var(--cream)'}}>anon / public</strong> key.</div>
               </div>
             </div>
-
             <div className="step">
               <div className="step-num">5</div>
               <div className="step-body">
@@ -528,21 +530,17 @@ function DailyDay({dateStr, start, isToday, wgoals}){
       border:'1px solid '+(isToday?'rgba(108,99,255,.4)':'rgba(58,64,128,.25)'),
       borderRadius:14,overflow:'hidden',display:'flex',flexDirection:'column'
     }}>
-      {/* Day header */}
       <div style={{background:isToday?'#6c63ff':'#1c2248',padding:'12px 14px 10px',textAlign:'center'}}>
         <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.15rem',fontWeight:700,color:'#fff',letterSpacing:'.04em'}}>{dayName}</div>
         <div style={{fontSize:'.7rem',color:isToday?'rgba(255,255,255,.75)':'rgba(168,156,255,.7)',marginTop:2}}>{dateLabel}</div>
       </div>
-      {/* Donut */}
       <div style={{display:'flex',justifyContent:'center',padding:'16px 0 10px',background:isToday?'rgba(108,99,255,.05)':'transparent'}}>
         <Donut pct={pct} size={90} thick={9} color={accent} bg={accentBg}/>
       </div>
-      {/* Stats row */}
       <div style={{display:'flex',justifyContent:'center',gap:14,padding:'0 14px 10px',fontSize:'.68rem',color:'var(--muted)'}}>
         <span style={{color:'var(--ok)'}}>✓ {done} Done</span>
         <span style={{color:'#ef5350'}}>✕ {todos.length-done} Left</span>
       </div>
-      {/* Tasks */}
       <div style={{flex:1,padding:'0 12px 10px',overflowY:'auto',maxHeight:280}}>
         <div style={{fontSize:'.65rem',fontWeight:700,letterSpacing:'.1em',color:isToday?'var(--acc2)':'var(--muted)',marginBottom:8,textTransform:'uppercase'}}>Tasks</div>
         {todos.length===0&&!isFuture&&(
@@ -568,7 +566,6 @@ function DailyDay({dateStr, start, isToday, wgoals}){
             </div>
           );
         })}
-        {/* Add task inline */}
         {!isFuture&&adding?(
           <div style={{marginTop:8}}>
             <div style={{display:'flex',gap:6}}>
@@ -591,7 +588,6 @@ function DailyDay({dateStr, start, isToday, wgoals}){
           </button>
         )}
       </div>
-      {/* Completed / not done footer */}
       <div style={{borderTop:'1px solid rgba(255,255,255,.05)',display:'flex',fontSize:'.65rem',color:'var(--muted)'}}>
         <div style={{flex:1,padding:'6px 12px',textAlign:'center'}}>Completed<br/><span style={{color:'var(--ok)',fontWeight:600}}>{done}</span></div>
         <div style={{flex:1,padding:'6px 12px',textAlign:'center',borderLeft:'1px solid rgba(255,255,255,.05)'}}>Not Done<br/><span style={{color:'#ef5350',fontWeight:600}}>{todos.length-done}</span></div>
@@ -602,15 +598,13 @@ function DailyDay({dateStr, start, isToday, wgoals}){
 
 function DailyTab({dn,wn,mn,yn,start}){
   const now=new Date();
-  // Week starts Monday
-  const dow=now.getDay(); // 0=sun
+  const dow=now.getDay();
   const mondayOffset=dow===0?-6:1-dow;
   const weekStart=new Date(now); weekStart.setDate(now.getDate()+mondayOffset); weekStart.setHours(0,0,0,0);
   const [weekOffset,setWeekOffset]=useState(0);
   const [wgoals,setWgoals]=useState([]);
   const scrollRef=useRef();
 
-  // Build 7 days for current viewed week
   const days=Array.from({length:7},(_,i)=>{
     const d=new Date(weekStart); d.setDate(weekStart.getDate()+weekOffset*7+i);
     return fmt(d);
@@ -628,7 +622,6 @@ function DailyTab({dn,wn,mn,yn,start}){
     setWgoals(DB.get('wgoals_'+wk,[]));
   },[weekOffset,start]);
 
-  // Scroll to today on initial load
   useEffect(()=>{
     if(scrollRef.current&&weekOffset===0){
       const todayIdx=days.indexOf(todayStr());
@@ -639,23 +632,18 @@ function DailyTab({dn,wn,mn,yn,start}){
     }
   },[]);
 
-  const canGoFwd=weekOffset<0||(weekOffset===0&&days[6]<todayStr());
-
   return(
     <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
-      {/* Stats bar */}
       <div style={{display:'flex',gap:8,padding:'12px 14px 8px',flexShrink:0}}>
         {[['Day',dn],['Week',wn],['Month',mn],['Year',yn]].map(([l,v])=>(
           <div key={l} className="dstat"><div className="dsnum">{v}</div><div className="dslbl">{l}</div></div>
         ))}
       </div>
-      {/* Week nav */}
       <div style={{display:'flex',alignItems:'center',padding:'0 14px 10px',gap:10,flexShrink:0}}>
         <button className="dnbtn" onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
         <div className="dlbl" style={{fontSize:'.8rem'}}>{weekLabel()}</div>
         <button className="dnbtn" onClick={()=>setWeekOffset(w=>w+1)} disabled={weekOffset>=0} style={{opacity:weekOffset>=0?.35:1}}>›</button>
       </div>
-      {/* Day columns */}
       <div ref={scrollRef}
         style={{display:'flex',gap:10,padding:'0 14px 14px',overflowX:'auto',
           WebkitOverflowScrolling:'touch',flex:1,alignItems:'flex-start',scrollSnapType:'x mandatory'}}>
@@ -944,7 +932,6 @@ function MeetTab({wn}){
   );
 }
 
-/* ─── App Root ─── */
 /* ─── Habits Tracker ─── */
 const DEFAULT_HABITS = ['Wake up on time','Exercise','Read / Learn','Prayer / Devotion','No social media','Drink water','Sleep on time'];
 
@@ -985,21 +972,17 @@ function HabitsTab(){
   };
 
   const delHabit=id=>saveHabits(habits.filter(h=>h.id!==id));
-
   const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
 
-  // Build week groups: [{wk:1, days:[1..7]}, ...]
   const weeks=[];
   for(let d=1;d<=daysInMo;d+=7) weeks.push({wk:Math.ceil(d/7),days:Array.from({length:Math.min(7,daysInMo-d+1)},(_,i)=>d+i)});
 
-  // Per-habit monthly stats
   const habStats = habits.map(h=>{
     const possible = Math.min(daysInMo, todayD-1+(todayD<=daysInMo?1:0));
     const done = Object.keys(checks).filter(k=>k.startsWith(h.id+'_')&&checks[k]).length;
     return {id:h.id, done, possible};
   });
 
-  // Per-week % (all habits combined)
   const wkPcts = weeks.map(({wk,days})=>{
     const pastDays = days.filter(d=>d<=todayD);
     if(!pastDays.length||!habits.length) return null;
@@ -1011,12 +994,10 @@ function HabitsTab(){
   const monthDone = habStats.reduce((s,h)=>s+h.done,0);
   const monthPoss = habStats.reduce((s,h)=>s+h.possible,0);
   const monthPct  = monthPoss>0?Math.round((monthDone/monthPoss)*100):0;
-
   const dayName = d => { const dt=new Date(yr,mo,d); return DAYS[dt.getDay()].slice(0,1); };
 
   return(
     <div className="sec">
-      {/* Month nav */}
       <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
         <div className="dnav">
           <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
@@ -1024,8 +1005,6 @@ function HabitsTab(){
           <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
         </div>
       </div>
-
-      {/* Grid */}
       <div className="card" style={{padding:'12px 0 8px'}}>
         <div style={{padding:'0 14px 8px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div className="ctitle" style={{marginBottom:0}}>☑ Habit Tracker</div>
@@ -1072,7 +1051,6 @@ function HabitsTab(){
                   )))}
                 </tr>
               ))}
-              {/* % row per week */}
               <tr className="hab-prow">
                 <td className="hab-name">Progress</td>
                 {weeks.map(({wk,days},wi)=>(
@@ -1085,8 +1063,6 @@ function HabitsTab(){
           </table>
         </div>
       </div>
-
-      {/* Analysis */}
       <div className="card">
         <div className="ctitle">Analysis</div>
         <div className="anl-grid">
@@ -1123,16 +1099,16 @@ function HabitsTab(){
 
 /* ─── Budget Planner ─── */
 const BUD_CATS = [
-  {id:'housing',   name:'Housing',        ico:'🏠', color:'#5b8dee', sub:['Rent/Mortgage','Utilities','Internet','Insurance']},
-  {id:'food',      name:'Food & Groceries',ico:'🛒', color:'#f0a500', sub:['Groceries','Eating out','Coffee/Snacks']},
-  {id:'transport', name:'Transport',       ico:'🚗', color:'#20c997', sub:['Fuel','Public transport','Car insurance','Parking']},
-  {id:'health',    name:'Health',          ico:'❤️', color:'#ef5350', sub:['GP/Pharmacy','Gym','Supplements']},
-  {id:'personal',  name:'Personal Care',   ico:'🧴', color:'#9b59b6', sub:['Haircut','Clothing','Skincare']},
-  {id:'faith',     name:'Church / Faith',  ico:'✝️', color:'#6c63ff', sub:['Tithe','Giving','Events']},
-  {id:'entertain', name:'Entertainment',   ico:'🎬', color:'#fd7e14', sub:['Streaming','Events','Hobbies']},
-  {id:'shopping',  name:'Shopping',        ico:'🛍️', color:'#e83e8c', sub:['Online','Electronics','Home']},
-  {id:'savings',   name:'Savings',         ico:'💰', color:'#27ae60', sub:['Emergency fund','Investments','Goals']},
-  {id:'other',     name:'Other',           ico:'📌', color:'#7a7a9a', sub:['Misc']},
+  {id:'housing',   name:'Housing',         ico:'🏠', color:'#5b8dee', sub:['Rent/Mortgage','Utilities','Internet','Insurance']},
+  {id:'food',      name:'Food & Groceries', ico:'🛒', color:'#f0a500', sub:['Groceries','Eating out','Coffee/Snacks']},
+  {id:'transport', name:'Transport',        ico:'🚗', color:'#20c997', sub:['Fuel','Public transport','Car insurance','Parking']},
+  {id:'health',    name:'Health',           ico:'❤️', color:'#ef5350', sub:['GP/Pharmacy','Gym','Supplements']},
+  {id:'personal',  name:'Personal Care',    ico:'🧴', color:'#9b59b6', sub:['Haircut','Clothing','Skincare']},
+  {id:'faith',     name:'Church / Faith',   ico:'✝️', color:'#6c63ff', sub:['Tithe','Giving','Events']},
+  {id:'entertain', name:'Entertainment',    ico:'🎬', color:'#fd7e14', sub:['Streaming','Events','Hobbies']},
+  {id:'shopping',  name:'Shopping',         ico:'🛍️', color:'#e83e8c', sub:['Online','Electronics','Home']},
+  {id:'savings',   name:'Savings',          ico:'💰', color:'#27ae60', sub:['Emergency fund','Investments','Goals']},
+  {id:'other',     name:'Other',            ico:'📌', color:'#7a7a9a', sub:['Misc']},
 ];
 
 const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1165,7 +1141,6 @@ function BudgetTab(){
   const [txs,setTxs]=useState([]);
   const [form,setForm]=useState({desc:'',amount:'',catId:'food',type:'expense',date:todayStr()});
   const [showForm,setShowForm]=useState(false);
-  const [annualIncome,setAnnualIncome]=useState({});
   const [savingGoal,setSavingGoal]=useState('');
 
   const moKey=yr+'-'+String(mo+1).padStart(2,'0');
@@ -1174,14 +1149,12 @@ function BudgetTab(){
     setBudgets(DB.get('bud_budgets_'+moKey,{}));
     setIncome(DB.get('bud_income_'+moKey,{salary:'',other:'',other2:''}));
     setTxs(DB.get('bud_txs_'+moKey,[]));
-    setAnnualIncome(DB.get('bud_annual_income_'+yr,{}));
     setSavingGoal(DB.get('bud_saving_goal',''));
-  },[moKey,yr]);
+  },[moKey]);
 
   const saveBudgets=b=>{setBudgets(b);DB.set('bud_budgets_'+moKey,b);};
   const saveIncome=v=>{setIncome(v);DB.set('bud_income_'+moKey,v);};
   const saveTxs=t=>{setTxs(t);DB.set('bud_txs_'+moKey,t);};
-  const saveAnnual=v=>{setAnnualIncome(v);DB.set('bud_annual_income_'+yr,v);};
 
   const navMo=dir=>{let m=mo+dir,y=yr;if(m<0){m=11;y--;}if(m>11){m=0;y++;}setMo(m);setYr(y);};
   const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
@@ -1202,7 +1175,6 @@ function BudgetTab(){
     setShowForm(false);
   };
 
-  // Annual: get all 12 months spending
   const getMonthSpent=m=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
     const t=DB.get('bud_txs_'+mk,[]);
@@ -1221,7 +1193,6 @@ function BudgetTab(){
 
   return(
     <div className="sec">
-      {/* Month nav */}
       <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
         <div className="dnav">
           <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
@@ -1230,24 +1201,19 @@ function BudgetTab(){
         </div>
       </div>
 
-      {/* Sub-tabs */}
       <div className="stabs">
         {[['overview','Overview'],['monthly','Monthly'],['annual','Annual Plan'],['income','Income & Budgets'],['transactions','Transactions']].map(([id,lbl])=>(
           <button key={id} className={'stab'+(sub===id?' on':'')} onClick={()=>setSub(id)}>{lbl}</button>
         ))}
       </div>
 
-      {/* ── OVERVIEW ── */}
       {sub==='overview'&&(
         <>
-          {/* Summary cards */}
-          <div className="bsum" style={{gridTemplateColumns:'1fr 1fr 1fr',marginBottom:12}}>
+          <div className="bsum">
             <div className="bstat"><div className="bnum neu">{fp(totalIncome)}</div><div className="blbl">Income</div></div>
             <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl">Spent</div></div>
             <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl">Left</div></div>
           </div>
-
-          {/* Overall donut + spending bar */}
           <div className="card">
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
               <Donut pct={overallPct} size={80} thick={8} color={overallPct>90?'#ef5350':overallPct>75?'#f59e0b':'#6c63ff'} label="budget"/>
@@ -1296,8 +1262,6 @@ function BudgetTab(){
                 </div>
               </div>
             )}
-
-            {/* Category breakdown */}
             {BUD_CATS.map(cat=>{
               const spent=spentByCat(cat.id);
               const bud=parseFloat(budgets[cat.id])||0;
@@ -1325,7 +1289,6 @@ function BudgetTab(){
         </>
       )}
 
-      {/* ── MONTHLY WHEELS ── */}
       {sub==='monthly'&&(
         <div className="card">
           <div className="ctitle">Monthly Spending Wheels — {yr}</div>
@@ -1372,7 +1335,6 @@ function BudgetTab(){
         </div>
       )}
 
-      {/* ── ANNUAL PLAN ── */}
       {sub==='annual'&&(
         <div className="card" style={{padding:0,overflow:'hidden'}}>
           <div style={{padding:'12px 14px 0',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
@@ -1392,7 +1354,6 @@ function BudgetTab(){
                 </tr>
               </thead>
               <tbody>
-                {/* Income section */}
                 <tr style={{background:'rgba(76,175,80,.12)'}}>
                   <td colSpan={14} style={{padding:'5px 10px',fontSize:'.65rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>REVENUE</td>
                 </tr>
@@ -1417,7 +1378,6 @@ function BudgetTab(){
                     </tr>
                   );
                 })}
-                {/* Total income row */}
                 <tr style={{background:'rgba(76,175,80,.08)',borderTop:'1px solid rgba(76,175,80,.2)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>Total Income</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1428,7 +1388,6 @@ function BudgetTab(){
                     £{Array.from({length:12},(_,m)=>getMonthIncome(m)).reduce((s,v)=>s+v,0).toFixed(0)}
                   </td>
                 </tr>
-                {/* Expenses by category */}
                 <tr style={{background:'rgba(239,83,80,.1)'}}>
                   <td colSpan={14} style={{padding:'5px 10px',fontSize:'.65rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'var(--danger)',position:'sticky',left:0,background:'rgba(239,83,80,.1)'}}>EXPENSES</td>
                 </tr>
@@ -1449,7 +1408,6 @@ function BudgetTab(){
                     </tr>
                   );
                 })}
-                {/* Total expenses */}
                 <tr style={{background:'rgba(239,83,80,.08)',borderTop:'1px solid rgba(239,83,80,.2)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--danger)',position:'sticky',left:0,background:'rgba(239,83,80,.1)'}}>Total Expenses</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1460,7 +1418,6 @@ function BudgetTab(){
                     £{Array.from({length:12},(_,m)=>getMonthSpent(m)).reduce((s,v)=>s+v,0).toFixed(0)}
                   </td>
                 </tr>
-                {/* Savings */}
                 <tr style={{background:'rgba(108,99,255,.08)',borderTop:'1px solid rgba(108,99,255,.15)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--acc2)',position:'sticky',left:0,background:'rgba(108,99,255,.1)'}}>💰 Net Savings</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1477,7 +1434,6 @@ function BudgetTab(){
         </div>
       )}
 
-      {/* ── INCOME & BUDGETS ── */}
       {sub==='income'&&(
         <div className="card">
           <div className="ctitle">💷 Income — {FULL_MONTHS[mo]}</div>
@@ -1512,7 +1468,6 @@ function BudgetTab(){
         </div>
       )}
 
-      {/* ── TRANSACTIONS ── */}
       {sub==='transactions'&&(
         <div className="card">
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
@@ -1553,412 +1508,6 @@ function BudgetTab(){
   );
 }
 
-/* ─── App Root ─── */
-/* ─── Habits Tracker ─── */
-const DEFAULT_HABITS = ['Wake up on time','Exercise','Read / Learn','Prayer / Devotion','No social media','Drink water','Sleep on time'];
-
-function HabitsTab(){
-  const now = new Date();
-  const [yr,setYr]   = useState(now.getFullYear());
-  const [mo,setMo]   = useState(now.getMonth());
-  const [habits,setHabits] = useState([]);
-  const [checks,setChecks] = useState({});
-  const [newHab,setNewHab] = useState('');
-  const [showAdd,setShowAdd] = useState(false);
-
-  const moKey = `${yr}-${String(mo+1).padStart(2,'0')}`;
-  const daysInMo = new Date(yr,mo+1,0).getDate();
-  const todayD = now.getFullYear()===yr && now.getMonth()===mo ? now.getDate() : (now.getFullYear()>yr||(now.getFullYear()===yr&&now.getMonth()>mo)?daysInMo+1:0);
-
-  useEffect(()=>{
-    const h = DB.get('habits_list', DEFAULT_HABITS.map((t,i)=>({id:'h'+i,text:t})));
-    setHabits(h);
-    setChecks(DB.get('habits_checks_'+moKey,{}));
-  },[moKey]);
-
-  const saveHabits = h=>{ setHabits(h); DB.set('habits_list',h); };
-  const saveChecks = c=>{ setChecks(c); DB.set('habits_checks_'+moKey,c); };
-
-  const toggle = (hid,day)=>{
-    if(day>todayD) return;
-    const k=hid+'_'+day;
-    const nc={...checks,[k]:!checks[k]};
-    if(!nc[k]) delete nc[k];
-    saveChecks(nc);
-  };
-
-  const addHabit=()=>{
-    if(!newHab.trim()) return;
-    saveHabits([...habits,{id:genId(),text:newHab.trim()}]);
-    setNewHab(''); setShowAdd(false);
-  };
-
-  const delHabit=id=>saveHabits(habits.filter(h=>h.id!==id));
-
-  const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
-
-  // Build week groups: [{wk:1, days:[1..7]}, ...]
-  const weeks=[];
-  for(let d=1;d<=daysInMo;d+=7) weeks.push({wk:Math.ceil(d/7),days:Array.from({length:Math.min(7,daysInMo-d+1)},(_,i)=>d+i)});
-
-  // Per-habit monthly stats
-  const habStats = habits.map(h=>{
-    const possible = Math.min(daysInMo, todayD-1+(todayD<=daysInMo?1:0));
-    const done = Object.keys(checks).filter(k=>k.startsWith(h.id+'_')&&checks[k]).length;
-    return {id:h.id, done, possible};
-  });
-
-  // Per-week % (all habits combined)
-  const wkPcts = weeks.map(({wk,days})=>{
-    const pastDays = days.filter(d=>d<=todayD);
-    if(!pastDays.length||!habits.length) return null;
-    const total = pastDays.length * habits.length;
-    const done  = pastDays.reduce((s,d)=>s+habits.filter(h=>checks[h.id+'_'+d]).length, 0);
-    return Math.round((done/total)*100);
-  });
-
-  const monthDone = habStats.reduce((s,h)=>s+h.done,0);
-  const monthPoss = habStats.reduce((s,h)=>s+h.possible,0);
-  const monthPct  = monthPoss>0?Math.round((monthDone/monthPoss)*100):0;
-
-  const dayName = d => { const dt=new Date(yr,mo,d); return DAYS[dt.getDay()].slice(0,1); };
-
-  return(
-    <div className="sec">
-      {/* Month nav */}
-      <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
-        <div className="dnav">
-          <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
-          <div className="dlbl">{MONTHS[mo]} {yr} — {monthPct}% complete</div>
-          <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
-        </div>
-      </div>
-
-      {/* Grid */}
-      <div className="card" style={{padding:'12px 0 8px'}}>
-        <div style={{padding:'0 14px 8px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div className="ctitle" style={{marginBottom:0}}>☑ Habit Tracker</div>
-          <button className="btn btnsm" onClick={()=>setShowAdd(v=>!v)}>+ Habit</button>
-        </div>
-        {showAdd&&(
-          <div style={{padding:'0 14px 10px',display:'flex',gap:7}}>
-            <input className="inp inp-sm" placeholder="New habit…" value={newHab} autoFocus
-              onChange={e=>setNewHab(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addHabit()}/>
-            <button className="btn btnsm" onClick={addHabit}>Add</button>
-          </div>
-        )}
-        <div className="hab-wrap">
-          <table className="hab-tbl">
-            <thead>
-              <tr>
-                <th className="hab-name" style={{fontSize:'.62rem',color:'var(--muted)',fontWeight:600,paddingBottom:2}}>My Habits</th>
-                {weeks.map(({wk,days})=><th key={wk} className="hab-wh" colSpan={days.length}>Week {wk}</th>)}
-              </tr>
-              <tr>
-                <th className="hab-name" style={{paddingTop:2}}></th>
-                {weeks.flatMap(({days})=>days.map(d=>(
-                  <th key={d} className="hab-dh">
-                    <div style={{color:d===todayD?'var(--gold)':'',fontWeight:d===todayD?700:400}}>{d}</div>
-                    <div style={{fontSize:'.52rem',opacity:.6}}>{dayName(d)}</div>
-                  </th>
-                )))}
-              </tr>
-            </thead>
-            <tbody>
-              {habits.map(h=>(
-                <tr key={h.id}>
-                  <td className="hab-name">
-                    <span style={{cursor:'pointer'}} onClick={()=>delHabit(h.id)} title="tap to remove">✕ </span>
-                    {h.text}
-                  </td>
-                  {weeks.flatMap(({days})=>days.map(d=>(
-                    <td key={d} className="hab-c">
-                      <button className={`hck ${checks[h.id+'_'+d]?'on':''} ${d>todayD?'fut':''}`}
-                        onClick={()=>toggle(h.id,d)}>
-                        {checks[h.id+'_'+d]?'✓':''}
-                      </button>
-                    </td>
-                  )))}
-                </tr>
-              ))}
-              {/* % row per week */}
-              <tr className="hab-prow">
-                <td className="hab-name">Progress</td>
-                {weeks.map(({wk,days},wi)=>(
-                  <td key={wk} colSpan={days.length} style={{textAlign:'center',fontSize:'.65rem',color:wkPcts[wi]!==null?(wkPcts[wi]>=80?'var(--ok)':wkPcts[wi]>=50?'var(--gold2)':'var(--danger)'):'var(--muted)',fontWeight:600,paddingTop:4,borderTop:'1px solid var(--bdr)'}}>
-                    {wkPcts[wi]!==null?wkPcts[wi]+'%':'—'}
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Analysis */}
-      <div className="card">
-        <div className="ctitle">Analysis</div>
-        <div className="anl-grid">
-          <div className="anl-h">Habit</div>
-          <div className="anl-h" style={{textAlign:'center'}}>Goal</div>
-          <div className="anl-h" style={{textAlign:'center'}}>Done</div>
-          <div className="anl-h">Progress</div>
-          {habits.map(h=>{
-            const st=habStats.find(s=>s.id===h.id)||{done:0,possible:0};
-            const pct=st.possible>0?Math.round((st.done/st.possible)*100):0;
-            const barCls=pct>=80?'':pct>=50?'warn':'bad';
-            return(<React.Fragment key={h.id}>
-              <div className="anl-c" style={{fontSize:'.76rem',borderBottom:'1px solid rgba(255,255,255,.04)'}}>{h.text}</div>
-              <div className="anl-c" style={{justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,.04)'}}>{st.possible}</div>
-              <div className="anl-c" style={{justifyContent:'center',borderBottom:'1px solid rgba(255,255,255,.04)'}}>{st.done}</div>
-              <div className="anl-c" style={{gap:6,borderBottom:'1px solid rgba(255,255,255,.04)'}}>
-                <div className="anl-bar-wrap"><div className={`anl-bar ${barCls}`} style={{width:pct+'%'}}/></div>
-                <span style={{fontSize:'.65rem',color:'var(--muted)',flexShrink:0,width:28,textAlign:'right'}}>{pct}%</span>
-              </div>
-            </React.Fragment>);
-          })}
-        </div>
-        <div style={{marginTop:12,display:'flex',alignItems:'center',gap:10,background:'var(--s3)',borderRadius:8,padding:'10px 12px'}}>
-          <div style={{flex:1}}>
-            <div style={{fontSize:'.72rem',color:'var(--muted)',marginBottom:4}}>Overall Month Progress</div>
-            <div className="anl-bar-wrap" style={{height:7}}><div className="anl-bar" style={{width:monthPct+'%'}}/></div>
-          </div>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem',color:'var(--acc2)',fontWeight:600}}>{monthPct}%</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Budget Planner ─── */
-const BUD_CATS = [
-  {id:'housing',    name:'Housing',       ico:'🏠', color:'#5b8dee'},
-  {id:'food',       name:'Food & Groceries', ico:'🛒', color:'#f0a500'},
-  {id:'transport',  name:'Transport',     ico:'🚗', color:'#20c997'},
-  {id:'health',     name:'Health',        ico:'❤️', color:'#e74c3c'},
-  {id:'personal',   name:'Personal Care', ico:'🧴', color:'#9b59b6'},
-  {id:'faith',      name:'Church / Faith',ico:'✝️', color:'var(--gold)'},
-  {id:'entertain',  name:'Entertainment', ico:'🎬', color:'#fd7e14'},
-  {id:'shopping',   name:'Shopping',      ico:'🛍️', color:'#e83e8c'},
-  {id:'savings',    name:'Savings',       ico:'💰', color:'#27ae60'},
-  {id:'other',      name:'Other',         ico:'📌', color:'var(--muted)'},
-];
-
-function BudgetTab(){
-  const now=new Date();
-  const [yr,setYr]=useState(now.getFullYear());
-  const [mo,setMo]=useState(now.getMonth());
-  const [sub,setSub]=useState('overview');
-  const [budgets,setBudgets]=useState({});   // catId -> budget amount
-  const [income,setIncome]=useState({salary:'',other:''});
-  const [txs,setTxs]=useState([]);           // transactions
-  const [form,setForm]=useState({desc:'',amount:'',catId:'food',type:'expense'});
-  const [showForm,setShowForm]=useState(false);
-
-  const moKey=`${yr}-${String(mo+1).padStart(2,'0')}`;
-
-  useEffect(()=>{
-    setBudgets(DB.get('bud_budgets_'+moKey,{}));
-    setIncome(DB.get('bud_income_'+moKey,{salary:'',other:''}));
-    setTxs(DB.get('bud_txs_'+moKey,[]));
-  },[moKey]);
-
-  const saveBudgets=b=>{ setBudgets(b); DB.set('bud_budgets_'+moKey,b); };
-  const saveIncome=v=>{ setIncome(v); DB.set('bud_income_'+moKey,v); };
-  const saveTxs=t=>{ setTxs(t); DB.set('bud_txs_'+moKey,t); };
-
-  const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
-
-  const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0);
-  const totalSpent=txs.filter(t=>t.type==='expense').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-  const savings=totalIncome-totalSpent;
-
-  const spentByCat=cat=>txs.filter(t=>t.catId===cat&&t.type==='expense').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-
-  const addTx=()=>{
-    if(!form.desc.trim()||!form.amount) return;
-    saveTxs([{id:genId(),date:todayStr(),...form,amount:parseFloat(form.amount)},  ...txs]);
-    setForm({desc:'',amount:'',catId:'food',type:'expense'}); setShowForm(false);
-  };
-
-  const fmt2=n=>n<0?`-£${Math.abs(n).toFixed(2)}`:`£${n.toFixed(2)}`;
-  const fmtp=n=>`£${(parseFloat(n)||0).toFixed(2)}`;
-
-  return(
-    <div className="sec">
-      {/* Month nav */}
-      <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
-        <div className="dnav">
-          <button className="dnbtn" onClick={()=>navMo(-1)}>‹</button>
-          <div className="dlbl">{MONTHS[mo]} {yr} Budget</div>
-          <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
-        </div>
-      </div>
-
-      {/* Summary */}
-      <div className="bsum">
-        <div className="bstat">
-          <div className={`bnum neu`}>{fmtp(totalIncome)}</div>
-          <div className="blbl">Income</div>
-        </div>
-        <div className="bstat">
-          <div className="bnum neg">{fmtp(totalSpent)}</div>
-          <div className="blbl">Spent</div>
-        </div>
-        <div className="bstat">
-          <div className={`bnum ${savings>=0?'pos':'neg'}`}>{fmt2(savings)}</div>
-          <div className="blbl">Left</div>
-        </div>
-      </div>
-
-      {/* Sub tabs */}
-      <div className="stabs">
-        {['overview','income','transactions'].map(s=>(
-          <button key={s} className={'stab'+(sub===s?' on':'')} onClick={()=>setSub(s)}
-            style={{textTransform:'capitalize'}}>{s}</button>))}
-      </div>
-
-      {/* Overview — categories */}
-      {sub==='overview'&&(
-        <>
-          <div style={{display:'flex',justifyContent:'flex-end',marginBottom:8}}>
-            <button className="btn btnsm" onClick={()=>setShowForm(v=>!v)}>+ Add Transaction</button>
-          </div>
-          {showForm&&(
-            <div className="card" style={{marginBottom:11}}>
-              <div className="ctitle" style={{marginBottom:10}}>Add Transaction</div>
-              <div className="frow">
-                <label className="flbl">Type</label>
-                <div style={{display:'flex',gap:6}}>
-                  {['expense','income'].map(t=>(
-                    <button key={t} className={'btn btnsm '+(form.type===t?'':'btng')} onClick={()=>setForm(f=>({...f,type:t}))}
-                      style={{flex:1,textTransform:'capitalize'}}>{t}</button>))}
-                </div>
-              </div>
-              <div className="frow">
-                <label className="flbl">Description</label>
-                <input className="inp inp-sm" placeholder="e.g. Tesco shop" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))}/>
-              </div>
-              <div className="grid2" style={{marginBottom:11}}>
-                <div>
-                  <label className="flbl">Amount (£)</label>
-                  <input className="inp inp-sm" type="number" placeholder="0.00" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))}/>
-                </div>
-                <div>
-                  <label className="flbl">Category</label>
-                  <select className="inp inp-sm" value={form.catId} onChange={e=>setForm(f=>({...f,catId:e.target.value}))}>
-                    {BUD_CATS.map(c=><option key={c.id} value={c.id}>{c.ico} {c.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div style={{display:'flex',gap:7}}>
-                <button className="btn btng" onClick={()=>setShowForm(false)} style={{flex:1}}>Cancel</button>
-                <button className="btn" onClick={addTx} style={{flex:1}}>Add</button>
-              </div>
-            </div>
-          )}
-          <div className="card">
-            <div className="ctitle">Spending by Category</div>
-            {BUD_CATS.map(cat=>{
-              const spent=spentByCat(cat.id);
-              const bud=parseFloat(budgets[cat.id])||0;
-              const pct=bud>0?Math.min(100,(spent/bud)*100):0;
-              const over=bud>0&&spent>bud;
-              if(spent===0&&bud===0) return null;
-              return(
-                <div key={cat.id} className="bcat">
-                  <div className="bcat-ico">{cat.ico}</div>
-                  <div className="bcat-info">
-                    <div className="bcat-top">
-                      <span>{cat.name}</span>
-                      <span style={{color:over?'var(--danger)':'var(--cream)',fontSize:'.8rem',fontWeight:600}}>{fmtp(spent)}{bud>0&&<span style={{color:'var(--muted)',fontWeight:400}}> / {fmtp(bud)}</span>}</span>
-                    </div>
-                    {bud>0&&(
-                      <div className="bbar-w">
-                        <div className="bbar" style={{width:pct+'%',background:over?'var(--danger)':pct>75?'var(--gold)':'var(--ok)'}}/>
-                      </div>
-                    )}
-                    <div className="bcat-sub">{bud>0?`${Math.round(pct)}% of budget used`:`No budget set — `}
-                      {bud===0&&<span style={{cursor:'pointer',color:'var(--gold)',textDecoration:'underline'}}
-                        onClick={()=>{ const v=prompt(`Budget for ${cat.name} (£)?`); if(v) saveBudgets({...budgets,[cat.id]:parseFloat(v)||0}); }}>set one</span>}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            {txs.filter(t=>t.type==='expense').length===0&&(
-              <div className="empty" style={{padding:'16px 0'}}>
-                <div className="eico">💸</div>
-                <div className="etxt">No transactions yet — tap + Add Transaction</div>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {/* Income tab */}
-      {sub==='income'&&(
-        <div className="card">
-          <div className="ctitle">💷 Monthly Income</div>
-          <div className="frow">
-            <label className="flbl">Salary / Main Income (£)</label>
-            <input className="inp" type="number" placeholder="0.00" value={income.salary}
-              onChange={e=>saveIncome({...income,salary:e.target.value})}/>
-          </div>
-          <div className="frow">
-            <label className="flbl">Other Income (£)</label>
-            <input className="inp" type="number" placeholder="0.00" value={income.other}
-              onChange={e=>saveIncome({...income,other:e.target.value})}/>
-          </div>
-          <div style={{background:'var(--s3)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <span style={{fontSize:'.82rem',color:'var(--muted)'}}>Total Income</span>
-            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.3rem',color:'var(--gold)',fontWeight:600}}>{fmtp(totalIncome)}</span>
-          </div>
-          <div className="divider"/>
-          <div className="ctitle" style={{marginBottom:10}}>Category Budgets</div>
-          {BUD_CATS.map(cat=>(
-            <div key={cat.id} className="bcat" style={{paddingTop:6,paddingBottom:6}}>
-              <div className="bcat-ico">{cat.ico}</div>
-              <div className="bcat-info">
-                <label className="flbl" style={{marginBottom:3}}>{cat.name}</label>
-                <input className="inp inp-sm" type="number" placeholder="£ budget" value={budgets[cat.id]||''}
-                  onChange={e=>saveBudgets({...budgets,[cat.id]:e.target.value})}/>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Transactions */}
-      {sub==='transactions'&&(
-        <div className="card">
-          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:11}}>
-            <div className="ctitle" style={{marginBottom:0}}>All Transactions</div>
-            <button className="btn btnsm" onClick={()=>{setSub('overview');setShowForm(true);}}>+ Add</button>
-          </div>
-          {txs.length===0&&<div className="empty"><div className="eico">📋</div><div className="etxt">No transactions yet</div></div>}
-          {txs.map(t=>{
-            const cat=BUD_CATS.find(c=>c.id===t.catId)||BUD_CATS[BUD_CATS.length-1];
-            return(
-              <div key={t.id} className="btx-row">
-                <span className="btx-ico">{cat.ico}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div className="btx-name">{t.desc}</div>
-                  <div className="btx-cat">{cat.name} · {t.date}</div>
-                </div>
-                <span className="btx-amt" style={{color:t.type==='income'?'var(--ok)':'var(--cream)'}}>
-                  {t.type==='income'?'+':'-'}{fmtp(t.amount)}
-                </span>
-                <button className="btx-del" onClick={()=>saveTxs(txs.filter(x=>x.id!==t.id))}>✕</button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
 const TABS=[
   {id:'daily', ico:'✦',lbl:'Today'},
   {id:'goals', ico:'◎',lbl:'Goals'},
@@ -1978,18 +1527,13 @@ function App(){
   const [showSync,setShowSync]=useState(false);
 
   useEffect(()=>{
-    // Subscribe to sync status updates
     Sync.onStatus(setSyncStatus);
-
-    // Init sync if credentials exist, then load start date
     const initApp = async () => {
       const syncUrl = DB.get('sync_url',null);
       const syncKey = DB.get('sync_key',null);
       if(syncUrl && syncKey){
-        // Pull remote data first so all tabs see up-to-date data
         await Sync.init(syncUrl, syncKey);
       }
-      // Now read start date (may have just been pulled from remote)
       const s = DB.get('start', null);
       setStart(s);
       setSyncReady(true);
@@ -1999,7 +1543,6 @@ function App(){
 
   const onSetup = d => { DB.set('start',d); setStart(d); };
 
-  // Loading
   if(!syncReady) return(
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:14}}>
       <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.8rem',color:'var(--gold)'}}>Journey</div>
@@ -2028,7 +1571,6 @@ function App(){
             <span className="chip">Mo {mn}</span>
             <span className="chip">Yr {yn}</span>
           </div>
-          {/* Sync status dot */}
           <div
             className={'syncdot '+syncStatus}
             onClick={()=>setShowSync(true)}
@@ -2057,7 +1599,46 @@ function App(){
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+class ErrorBoundary extends React.Component {
+  constructor(props){ super(props); this.state={error:null}; }
+  static getDerivedStateFromError(e){ return {error:e}; }
+  render(){
+    if(this.state.error){
+      return React.createElement('div',{style:{
+        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
+        height:'100vh',padding:24,textAlign:'center',background:'#07080f',color:'#e8eaf6',
+        fontFamily:"'DM Sans',sans-serif"
+      }},
+        React.createElement('div',{style:{fontSize:'2rem',marginBottom:12}},'⚠️'),
+        React.createElement('div',{style:{fontSize:'1rem',fontWeight:600,marginBottom:8,color:'#a89cff'}},'Something went wrong'),
+        React.createElement('div',{style:{fontSize:'.8rem',color:'#5a6080',marginBottom:16,maxWidth:280,lineHeight:1.6}},
+          'Try refreshing the page. If it keeps happening, clear your browser cache and reload.'),
+        React.createElement('div',{style:{fontSize:'.7rem',color:'#3a4080',fontFamily:'monospace',background:'#111426',padding:'8px 12px',borderRadius:6,maxWidth:'90%',wordBreak:'break-all'}},
+          this.state.error.toString()),
+        React.createElement('button',{
+          onClick:()=>window.location.reload(),
+          style:{marginTop:16,background:'#6c63ff',color:'#fff',border:'none',borderRadius:8,
+            padding:'10px 20px',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600}
+        },'Reload')
+      );
+    }
+    return this.props.children;
+  }
+}
+
+try {
+  ReactDOM.createRoot(document.getElementById('root')).render(
+    React.createElement(ErrorBoundary, null, React.createElement(App))
+  );
+} catch(e) {
+  document.getElementById('root').innerHTML =
+    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#07080f;color:#e8eaf6;font-family:sans-serif;text-align:center;padding:24px">' +
+    '<div style="font-size:2rem;margin-bottom:12px">⚠️</div>' +
+    '<div style="font-size:1rem;color:#a89cff;margin-bottom:8px">Failed to start</div>' +
+    '<div style="font-size:.8rem;color:#5a6080;margin-bottom:16px">Try refreshing the page.</div>' +
+    '<button onclick="location.reload()" style="background:#6c63ff;color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-size:.9rem">Reload</button>' +
+    '</div>';
+}
 </script>
 </body>
 </html>
