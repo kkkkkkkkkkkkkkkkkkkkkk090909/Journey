@@ -660,32 +660,85 @@ function DailyTab({dn,wn,mn,yn,start}){
 /* ─── Goals ─── */
 function GoalsTab({dn,wn,mn,yn,start}){
   const [sub,setSub]=useState('weekly');
-  const now=new Date(), isSun=now.getDay()===0, todayS=todayStr();
-  const planWk=isSun?wn+1:wn, wFull=isSun, wLabel=isSun?`Plan Week ${planWk}`:`Week ${wn}`;
-  const planSun=nearestSunToMonthEnd(now.getFullYear(),now.getMonth());
-  const mFull=isSun&&todayS===planSun, planMn=mFull?mn+1:mn, mLabel=mFull?`Plan Month ${planMn}`:`Month ${mn}`;
-  const planSunLbl=new Date(planSun+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long'});
-  const dyInYr=((dn-1)%365)+1, yFull=dyInYr<=7, yLabel=yFull?`Plan Year ${yn}`:`Year ${yn}`;
+  const [wOff,setWOff]=useState(0); // offset from current week
+  const [mOff,setMOff]=useState(0); // offset from current month
+  const [yOff,setYOff]=useState(0); // offset from current year
+
+  const viewWk=wn+wOff;
+  const viewMn=mn+mOff;
+  const viewYn=yn+yOff;
+
+  const wIsCurrent=wOff===0, mIsCurrent=mOff===0, yIsCurrent=yOff===0;
+
   return(
     <div className="sec">
       <div className="stabs">
-        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>{wLabel}</button>
-        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>{mLabel}</button>
-        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>{yLabel}</button>
+        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>Weekly</button>
+        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>Monthly</button>
+        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>Yearly</button>
       </div>
-      {sub==='weekly'&&<GoalList skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={wFull} isplan={isSun}
-        note={wFull?`Sunday planning — set your goals for Week ${planWk}.`:`Planning opens every Sunday. Full editing resumes then.`}
-        type="week" period={planWk} start={start}/>}
-      {sub==='monthly'&&<GoalList skey={'mgoals_'+planMn} label={`Month ${planMn}`} full={mFull} isplan={mFull}
-        note={mFull?`Monthly planning day! Set goals for Month ${planMn}.`:`Monthly planning opens on the nearest Sunday to month-end — next is ${planSunLbl}.`}
-        type="none"/>}
-      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn} label={`Year ${yn}`} full={yFull} isplan={yFull}
-        note={yFull?`New year of the journey! Set your vision for Year ${yn}.`:`Full yearly planning opens at the start of each journey year.`}
-        type="none"/>}
+
+      {sub==='weekly'&&(
+        <>
+          <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
+            <div className="dnav">
+              <button className="dnbtn" onClick={()=>setWOff(o=>o-1)}>‹</button>
+              <div className="dlbl" style={{fontSize:'.85rem'}}>
+                Week {viewWk}
+                {wIsCurrent&&<span style={{fontSize:'.65rem',color:'var(--acc2)',marginLeft:6}}>current</span>}
+                {viewWk===wn+1&&<span style={{fontSize:'.65rem',color:'var(--ok)',marginLeft:6}}>next week</span>}
+                {wOff<-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>{Math.abs(wOff)} wks ago</span>}
+                {wOff===-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>last week</span>}
+              </div>
+              <button className="dnbtn" onClick={()=>setWOff(o=>o+1)}>›</button>
+            </div>
+          </div>
+          <GoalList skey={'wgoals_'+viewWk} label={`Week ${viewWk}`} type="week" period={viewWk} start={start}/>
+        </>
+      )}
+
+      {sub==='monthly'&&(
+        <>
+          <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
+            <div className="dnav">
+              <button className="dnbtn" onClick={()=>setMOff(o=>o-1)}>‹</button>
+              <div className="dlbl" style={{fontSize:'.85rem'}}>
+                Month {viewMn}
+                {mIsCurrent&&<span style={{fontSize:'.65rem',color:'var(--acc2)',marginLeft:6}}>current</span>}
+                {mOff===1&&<span style={{fontSize:'.65rem',color:'var(--ok)',marginLeft:6}}>next month</span>}
+                {mOff<-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>{Math.abs(mOff)} mo ago</span>}
+                {mOff===-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>last month</span>}
+              </div>
+              <button className="dnbtn" onClick={()=>setMOff(o=>o+1)}>›</button>
+            </div>
+          </div>
+          <GoalList skey={'mgoals_'+viewMn} label={`Month ${viewMn}`} type="none"/>
+        </>
+      )}
+
+      {sub==='yearly'&&(
+        <>
+          <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
+            <div className="dnav">
+              <button className="dnbtn" onClick={()=>setYOff(o=>o-1)}>‹</button>
+              <div className="dlbl" style={{fontSize:'.85rem'}}>
+                Year {viewYn}
+                {yIsCurrent&&<span style={{fontSize:'.65rem',color:'var(--acc2)',marginLeft:6}}>current</span>}
+                {yOff===1&&<span style={{fontSize:'.65rem',color:'var(--ok)',marginLeft:6}}>next year</span>}
+                {yOff<-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>{Math.abs(yOff)} yrs ago</span>}
+                {yOff===-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>last year</span>}
+              </div>
+              <button className="dnbtn" onClick={()=>setYOff(o=>o+1)}>›</button>
+            </div>
+          </div>
+          <GoalList skey={'ygoals_'+viewYn} label={`Year ${viewYn}`} type="none"/>
+        </>
+      )}
     </div>
   );
 }
-function GoalList({skey,label,full,isplan,note,type,period,start}){
+
+function GoalList({skey,label,type,period,start}){
   const [goals,setGoals]=useState([]);
   const [inp,setInp]=useState('');
   const [linked,setLinked]=useState({});
@@ -700,44 +753,35 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
   const save=g=>{ setGoals(g); DB.set(skey,g); };
   const add=()=>{ if(!inp.trim()) return; save([...goals,{id:genId(),text:inp.trim(),measurable:isMeas(inp),done:false}]); setInp(''); };
   const toggle=id=>save(goals.map(g=>g.id===id?{...g,done:!g.done}:g));
-  const del=id=>{ if(full) save(goals.filter(g=>g.id!==id)); };
+  const del=id=>save(goals.filter(g=>g.id!==id));
   let tpct=0,mc=0; goals.forEach(g=>{ if(!g.measurable) return; mc++; const lk=linked[g.id]; if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100; else if(g.done) tpct+=100; });
   const nm=goals.filter(g=>!g.measurable),nmd=nm.filter(g=>g.done).length;
   const ovr=goals.length===0?0:mc>0?(tpct/mc+(nm.length>0?(nmd/nm.length)*100:0))/(mc>0&&nm.length>0?2:1):nm.length>0?(nmd/nm.length)*100:0;
   return(
-    <div>
-      <div className={'pbanner '+(isplan?'plan':'lock')}>
-        <span className="pb-ico">{isplan?'📋':'🔒'}</span>
-        <div>
-          <div className={'pb-hd '+(isplan?'gld':'mu')}>{isplan?'Planning Day':'Mid-period — Light edits only'}</div>
-          <div className="pb-bd">{note}</div>
-        </div>
-      </div>
-      <div className="card">
-        <div className="ctitle">◎ {label} Goals</div>
-        {goals.length>0&&<PBar pct={ovr} label="Overall progress"/>}
-        {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">{isplan?`Set your goals for ${label}`:`No goals set for ${label} yet`}</div></div>}
-        {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
-          <div key={g.id} className="gitem">
-            {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
-              {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
-            {g.measurable&&<div style={{width:20,flexShrink:0}}/>}
-            <div style={{flex:1}}>
-              <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done&&!g.measurable?'line-through':'none',color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
-              <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
-                <span className={'mbdg '+(g.measurable?'y':'n')}>{g.measurable?'◉ measurable':'◌ not measurable'}</span>
-                {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--acc2)'}}>{lk.done}/{lk.tot} tasks done</span>}
-              </div>
-              {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
+    <div className="card">
+      <div className="ctitle">◎ {label} Goals</div>
+      {goals.length>0&&<PBar pct={ovr} label="Overall progress"/>}
+      {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">No goals yet — add one below</div></div>}
+      {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
+        <div key={g.id} className="gitem">
+          {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
+            {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
+          {g.measurable&&<div style={{width:20,flexShrink:0}}/>}
+          <div style={{flex:1}}>
+            <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done&&!g.measurable?'line-through':'none',color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
+            <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
+              <span className={'mbdg '+(g.measurable?'y':'n')}>{g.measurable?'◉ measurable':'◌ not measurable'}</span>
+              {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--acc2)'}}>{lk.done}/{lk.tot} tasks done</span>}
             </div>
-            {full?<button className="tdel" onClick={()=>del(g.id)}>✕</button>:<div style={{width:22}}/>}
-          </div>);})}
-        <div className="row">
-          <input className="inp" placeholder={full?'Add a goal…':'Add a goal (light edit)…'} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
-          <button className="btn" onClick={add}>+</button>
-        </div>
-        {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'Measurable — progress tracked':'Not measurable — tick manually'}</div>}
+            {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
+          </div>
+          <button className="tdel" onClick={()=>del(g.id)}>✕</button>
+        </div>);})}
+      <div className="row">
+        <input className="inp" placeholder="Add a goal…" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+        <button className="btn" onClick={add}>+</button>
       </div>
+      {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'Measurable — progress tracked':'Not measurable — tick manually'}</div>}
     </div>
   );
 }
@@ -1159,7 +1203,12 @@ function BudgetTab(){
   const saveTxs=t=>{setTxs(t);DB.set('bud_txs_'+moKey,t);};
 
   const navMo=dir=>{let m=mo+dir,y=yr;if(m<0){m=11;y--;}if(m>11){m=0;y++;}setMo(m);setYr(y);};
-  const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
+
+  // ── FIXED: total income = manual fields + income transactions ──
+  const manualIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
+  const txIncome=txs.filter(t=>t.type==='income').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
+  const totalIncome=manualIncome+txIncome;
+
   const expenseTxs=txs.filter(t=>t.type==='expense');
   const totalSpent=expenseTxs.reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   const savings=totalIncome-totalSpent;
@@ -1177,6 +1226,7 @@ function BudgetTab(){
     setShowForm(false);
   };
 
+  // ── FIXED: annual helpers also include tx income ──
   const getMonthSpent=m=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
     const t=DB.get('bud_txs_'+mk,[]);
@@ -1185,7 +1235,10 @@ function BudgetTab(){
   const getMonthIncome=m=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
     const inc=DB.get('bud_income_'+mk,{salary:'',other:'',other2:''});
-    return (parseFloat(inc.salary)||0)+(parseFloat(inc.other)||0)+(parseFloat(inc.other2)||0);
+    const manual=(parseFloat(inc.salary)||0)+(parseFloat(inc.other)||0)+(parseFloat(inc.other2)||0);
+    const txData=DB.get('bud_txs_'+mk,[]);
+    const txInc=txData.filter(x=>x.type==='income').reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
+    return manual+txInc;
   };
   const getMonthCatSpent=(m,cid)=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
@@ -1212,10 +1265,29 @@ function BudgetTab(){
       {sub==='overview'&&(
         <>
           <div className="bsum">
-            <div className="bstat"><div className="bnum neu">{fp(totalIncome)}</div><div className="blbl">Income</div></div>
-            <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl">Spent</div></div>
-            <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl">Left</div></div>
+            <div className="bstat">
+              <div className="bnum neu">{fp(totalIncome)}</div>
+              <div className="blbl" style={{fontSize:'.6rem',color:'var(--muted)',marginTop:2}}>Income</div>
+              {txIncome>0&&<div style={{fontSize:'.58rem',color:'var(--acc2)',marginTop:2}}>+{fp(txIncome)} tx</div>}
+            </div>
+            <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl" style={{fontSize:'.6rem',color:'var(--muted)',marginTop:2}}>Spent</div></div>
+            <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl" style={{fontSize:'.6rem',color:'var(--muted)',marginTop:2}}>Left</div></div>
           </div>
+
+          {/* income breakdown row when tx income exists */}
+          {txIncome>0&&(
+            <div style={{background:'var(--s3)',border:'1px solid var(--bdr)',borderRadius:10,padding:'9px 12px',marginBottom:12,display:'flex',gap:0}}>
+              <div style={{flex:1,textAlign:'center',borderRight:'1px solid rgba(255,255,255,.06)',paddingRight:8}}>
+                <div style={{fontSize:'.62rem',color:'var(--muted)',marginBottom:3}}>Fixed Income</div>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--acc2)',fontWeight:600}}>{fp(manualIncome)}</div>
+              </div>
+              <div style={{flex:1,textAlign:'center',paddingLeft:8}}>
+                <div style={{fontSize:'.62rem',color:'var(--muted)',marginBottom:3}}>Extra Income</div>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--ok)',fontWeight:600}}>+{fp(txIncome)}</div>
+              </div>
+            </div>
+          )}
+
           <div className="card">
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
               <Donut pct={overallPct} size={80} thick={8} color={overallPct>90?'#ef5350':overallPct>75?'#f59e0b':'#6c63ff'} label="budget"/>
@@ -1226,7 +1298,7 @@ function BudgetTab(){
                   <div>
                     <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:3}}>Saving Goal: {fp(savGoalNum)}</div>
                     <div className="pwrap"><div className="pbar" style={{width:Math.min(100,(savings/savGoalNum)*100)+'%'}}/></div>
-                    <div style={{fontSize:'.7rem',color:'var(--ok)',marginTop:2}}>{fp(Math.max(0,savings))} saved ({Math.round(Math.min(100,(savings/savGoalNum)*100))}%)</div>
+                    <div style={{fontSize:'.7rem',color:'var(--ok)',marginTop:2}}>{fp(Math.max(0,savings))} saved ({Math.round(Math.min(100,Math.max(0,(savings/savGoalNum)*100)))}%)</div>
                   </div>
                 )}
               </div>
@@ -1380,6 +1452,27 @@ function BudgetTab(){
                     </tr>
                   );
                 })}
+                {/* Income transactions row in annual view */}
+                {(()=>{
+                  const yearly=Array.from({length:12},(_,m)=>{
+                    const mk=yr+'-'+String(m+1).padStart(2,'0');
+                    const txData=DB.get('bud_txs_'+mk,[]);
+                    return txData.filter(x=>x.type==='income').reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
+                  });
+                  const total=yearly.reduce((s,v)=>s+v,0);
+                  if(total===0) return null;
+                  return(
+                    <tr style={{background:'rgba(76,175,80,.06)'}}>
+                      <td style={{padding:'5px 10px',color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.06)',zIndex:1}}>Extra / Transaction Income</td>
+                      {yearly.map((v,m)=>(
+                        <td key={m} style={{padding:'5px 8px',textAlign:'center',color:v>0?'var(--ok)':'var(--muted)'}}>
+                          {v>0?'+£'+v.toFixed(0):'—'}
+                        </td>
+                      ))}
+                      <td style={{padding:'5px 8px',textAlign:'center',fontWeight:600,color:'var(--ok)'}}>+£{total.toFixed(0)}</td>
+                    </tr>
+                  );
+                })()}
                 <tr style={{background:'rgba(76,175,80,.08)',borderTop:'1px solid rgba(76,175,80,.2)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>Total Income</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1446,6 +1539,12 @@ function BudgetTab(){
                 onChange={e=>saveIncome({...income,[k]:e.target.value})}/>
             </div>
           ))}
+          {txIncome>0&&(
+            <div style={{background:'rgba(76,175,80,.08)',border:'1px solid rgba(76,175,80,.2)',borderRadius:8,padding:'9px 12px',marginBottom:12}}>
+              <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:3}}>Extra income from transactions</div>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.1rem',color:'var(--ok)',fontWeight:600}}>+{fp(txIncome)}</div>
+            </div>
+          )}
           <div style={{background:'var(--s3)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:12}}>
             <span style={{fontSize:'.82rem',color:'var(--muted)'}}>Total Income</span>
             <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.2rem',color:'var(--acc2)',fontWeight:600}}>{fp(totalIncome)}</span>
@@ -1478,8 +1577,8 @@ function BudgetTab(){
           </div>
           <div style={{display:'flex',gap:8,marginBottom:10,fontSize:'.75rem'}}>
             <div style={{flex:1,background:'rgba(76,175,80,.1)',border:'1px solid rgba(76,175,80,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
-              <div style={{color:'var(--ok)',fontWeight:600}}>{fp(txs.filter(t=>t.type==='income').reduce((s,t)=>s+(parseFloat(t.amount)||0),0))}</div>
-              <div style={{color:'var(--muted)',fontSize:'.65rem'}}>Income</div>
+              <div style={{color:'var(--ok)',fontWeight:600}}>{fp(txIncome)}</div>
+              <div style={{color:'var(--muted)',fontSize:'.65rem'}}>Tx Income</div>
             </div>
             <div style={{flex:1,background:'rgba(239,83,80,.1)',border:'1px solid rgba(239,83,80,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
               <div style={{color:'var(--danger)',fontWeight:600}}>{fp(totalSpent)}</div>
@@ -1491,10 +1590,10 @@ function BudgetTab(){
             const cat=BUD_CATS.find(c=>c.id===t.catId)||BUD_CATS[BUD_CATS.length-1];
             return(
               <div key={t.id} style={{display:'flex',alignItems:'center',gap:9,padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
-                <span style={{fontSize:'1rem',flexShrink:0}}>{cat.ico}</span>
+                <span style={{fontSize:'1rem',flexShrink:0}}>{t.type==='income'?'💵':cat.ico}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:'.83rem'}}>{t.desc}</div>
-                  <div style={{fontSize:'.67rem',color:'var(--muted)'}}>{cat.name} · {t.date}</div>
+                  <div style={{fontSize:'.67rem',color:'var(--muted)'}}>{t.type==='income'?'Income':cat.name} · {t.date}</div>
                 </div>
                 <span style={{fontWeight:600,flexShrink:0,color:t.type==='income'?'var(--ok)':'var(--cream)'}}>
                   {t.type==='income'?'+':'-'}{fp(t.amount)}
