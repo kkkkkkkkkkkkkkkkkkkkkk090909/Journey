@@ -186,6 +186,7 @@ select.inp option{background:var(--s2)}
 .bstat{background:var(--s3);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid var(--bdr)}
 .bnum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;line-height:1}
 .bnum.pos{color:var(--ok)}.bnum.neg{color:var(--danger)}.bnum.neu{color:var(--acc2)}
+.blbl{font-size:.58rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
 .bcat{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
 .bcat:last-child{border-bottom:none}
 .bcat-ico{font-size:1.05rem;flex-shrink:0;width:22px;text-align:center}
@@ -217,7 +218,10 @@ const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const calcDay   = s => { const a=new Date(s); a.setHours(0,0,0,0); const b=new Date(); b.setHours(0,0,0,0); return Math.max(1,Math.floor((b-a)/86400000)+1); };
-const calcWeek  = d => Math.ceil(d/7);
+const getMondayOf = d => { const dt=new Date(typeof d==='string'?d+'T12:00:00':d); const dow=dt.getDay(); dt.setDate(dt.getDate()-(dow===0?6:dow-1)); dt.setHours(0,0,0,0); return dt; };
+const calcWeek  = start => { const sm=getMondayOf(start); const tm=getMondayOf(new Date()); return Math.max(1,Math.floor((tm-sm)/604800000)+1); };
+const weekNumOf = (start,dateStr) => { const sm=getMondayOf(start); const dm=getMondayOf(dateStr); return Math.max(1,Math.floor((dm-sm)/604800000)+1); };
+const weekDays = (start,wk) => { const sm=getMondayOf(start); const mon=new Date(sm); mon.setDate(sm.getDate()+(wk-1)*7); return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return fmt(d); }); };
 const calcMonth = s => { const a=new Date(s+'T12:00:00'), b=new Date(); return Math.max(1,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())+1); };
 const calcYear  = d => Math.max(1,Math.ceil(d/365));
 const isMeas    = t => /\b\d+\b|pages?|mins?|minutes?|hours?|times?|days?|chapters?|verses?|km|miles?|reps?|sessions?|books?|calls?|words?|percent|%/i.test(t);
@@ -386,6 +390,7 @@ function SyncModal({onClose, onSynced}){
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
         <div className="mtitle">☁ Sync Across Devices</div>
+
         {step==='done' ? (
           <>
             <div className={`sync-status-row ${status}`}>
@@ -408,6 +413,7 @@ function SyncModal({onClose, onSynced}){
             <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:16}}>
               Follow these steps to sync your Journey data across your phone and laptop for free. Takes about 5 minutes.
             </p>
+
             <div className="step">
               <div className="step-num">1</div>
               <div className="step-body">
@@ -415,6 +421,7 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">Go to <strong style={{color:'var(--gold2)'}}>supabase.com</strong> and click "Start your project". Sign up with GitHub or email (it's free).</div>
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">2</div>
               <div className="step-body">
@@ -422,6 +429,7 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">Click "New project". Give it any name (e.g. "journey"). Choose a region close to you. Set any database password. Wait ~2 minutes for it to start.</div>
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">3</div>
               <div className="step-body">
@@ -433,6 +441,7 @@ function SyncModal({onClose, onSynced}){
                 {!copied && <div style={{fontSize:'.7rem',color:'var(--muted)',marginTop:4}}>Tap the box above to copy</div>}
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">4</div>
               <div className="step-body">
@@ -440,6 +449,7 @@ function SyncModal({onClose, onSynced}){
                 <div className="step-desc">In Supabase, go to <strong style={{color:'var(--cream)'}}>Settings → API</strong>. Copy your <strong style={{color:'var(--cream)'}}>Project URL</strong> and your <strong style={{color:'var(--cream)'}}>anon / public</strong> key.</div>
               </div>
             </div>
+
             <div className="step">
               <div className="step-num">5</div>
               <div className="step-body">
@@ -616,9 +626,7 @@ function DailyTab({dn,wn,mn,yn,start}){
   };
 
   useEffect(()=>{
-    const s=new Date(start+'T12:00:00'); s.setHours(0,0,0,0);
-    const v=new Date(days[0]+'T12:00:00'); v.setHours(0,0,0,0);
-    const wk=Math.ceil((Math.max(0,Math.floor((v-s)/86400000))+1)/7);
+    const wk=weekNumOf(start,days[0]);
     setWgoals(DB.get('wgoals_'+wk,[]));
   },[weekOffset,start]);
 
@@ -660,128 +668,83 @@ function DailyTab({dn,wn,mn,yn,start}){
 /* ─── Goals ─── */
 function GoalsTab({dn,wn,mn,yn,start}){
   const [sub,setSub]=useState('weekly');
-  const [wOff,setWOff]=useState(0); // offset from current week
-  const [mOff,setMOff]=useState(0); // offset from current month
-  const [yOff,setYOff]=useState(0); // offset from current year
-
-  const viewWk=wn+wOff;
-  const viewMn=mn+mOff;
-  const viewYn=yn+yOff;
-
-  const wIsCurrent=wOff===0, mIsCurrent=mOff===0, yIsCurrent=yOff===0;
-
+  const now=new Date(), isSun=now.getDay()===0, todayS=todayStr();
+  const planWk=isSun?wn+1:wn, wFull=isSun, wLabel=isSun?`Plan Week ${planWk}`:`Week ${wn}`;
+  const planSun=nearestSunToMonthEnd(now.getFullYear(),now.getMonth());
+  const mFull=isSun&&todayS===planSun, planMn=mFull?mn+1:mn, mLabel=mFull?`Plan Month ${planMn}`:`Month ${mn}`;
+  const planSunLbl=new Date(planSun+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long'});
+  const dyInYr=((dn-1)%365)+1, yFull=dyInYr<=7, yLabel=yFull?`Plan Year ${yn}`:`Year ${yn}`;
   return(
     <div className="sec">
       <div className="stabs">
-        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>Weekly</button>
-        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>Monthly</button>
-        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>Yearly</button>
+        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>{wLabel}</button>
+        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>{mLabel}</button>
+        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>{yLabel}</button>
       </div>
-
-      {sub==='weekly'&&(
-        <>
-          <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
-            <div className="dnav">
-              <button className="dnbtn" onClick={()=>setWOff(o=>o-1)}>‹</button>
-              <div className="dlbl" style={{fontSize:'.85rem'}}>
-                Week {viewWk}
-                {wIsCurrent&&<span style={{fontSize:'.65rem',color:'var(--acc2)',marginLeft:6}}>current</span>}
-                {viewWk===wn+1&&<span style={{fontSize:'.65rem',color:'var(--ok)',marginLeft:6}}>next week</span>}
-                {wOff<-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>{Math.abs(wOff)} wks ago</span>}
-                {wOff===-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>last week</span>}
-              </div>
-              <button className="dnbtn" onClick={()=>setWOff(o=>o+1)}>›</button>
-            </div>
-          </div>
-          <GoalList skey={'wgoals_'+viewWk} label={`Week ${viewWk}`} type="week" period={viewWk} start={start}/>
-        </>
-      )}
-
-      {sub==='monthly'&&(
-        <>
-          <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
-            <div className="dnav">
-              <button className="dnbtn" onClick={()=>setMOff(o=>o-1)}>‹</button>
-              <div className="dlbl" style={{fontSize:'.85rem'}}>
-                Month {viewMn}
-                {mIsCurrent&&<span style={{fontSize:'.65rem',color:'var(--acc2)',marginLeft:6}}>current</span>}
-                {mOff===1&&<span style={{fontSize:'.65rem',color:'var(--ok)',marginLeft:6}}>next month</span>}
-                {mOff<-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>{Math.abs(mOff)} mo ago</span>}
-                {mOff===-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>last month</span>}
-              </div>
-              <button className="dnbtn" onClick={()=>setMOff(o=>o+1)}>›</button>
-            </div>
-          </div>
-          <GoalList skey={'mgoals_'+viewMn} label={`Month ${viewMn}`} type="none"/>
-        </>
-      )}
-
-      {sub==='yearly'&&(
-        <>
-          <div className="card" style={{padding:'9px 13px',marginBottom:11}}>
-            <div className="dnav">
-              <button className="dnbtn" onClick={()=>setYOff(o=>o-1)}>‹</button>
-              <div className="dlbl" style={{fontSize:'.85rem'}}>
-                Year {viewYn}
-                {yIsCurrent&&<span style={{fontSize:'.65rem',color:'var(--acc2)',marginLeft:6}}>current</span>}
-                {yOff===1&&<span style={{fontSize:'.65rem',color:'var(--ok)',marginLeft:6}}>next year</span>}
-                {yOff<-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>{Math.abs(yOff)} yrs ago</span>}
-                {yOff===-1&&<span style={{fontSize:'.65rem',color:'var(--muted)',marginLeft:6}}>last year</span>}
-              </div>
-              <button className="dnbtn" onClick={()=>setYOff(o=>o+1)}>›</button>
-            </div>
-          </div>
-          <GoalList skey={'ygoals_'+viewYn} label={`Year ${viewYn}`} type="none"/>
-        </>
-      )}
+      {sub==='weekly'&&<GoalList skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={wFull} isplan={isSun}
+        note={wFull?`Sunday planning — set your goals for Week ${planWk}.`:`Planning opens every Sunday. Full editing resumes then.`}
+        type="week" period={planWk} start={start}/>}
+      {sub==='monthly'&&<GoalList skey={'mgoals_'+planMn} label={`Month ${planMn}`} full={mFull} isplan={mFull}
+        note={mFull?`Monthly planning day! Set goals for Month ${planMn}.`:`Monthly planning opens on the nearest Sunday to month-end — next is ${planSunLbl}.`}
+        type="none"/>}
+      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn} label={`Year ${yn}`} full={yFull} isplan={yFull}
+        note={yFull?`New year of the journey! Set your vision for Year ${yn}.`:`Full yearly planning opens at the start of each journey year.`}
+        type="none"/>}
     </div>
   );
 }
-
-function GoalList({skey,label,type,period,start}){
+function GoalList({skey,label,full,isplan,note,type,period,start}){
   const [goals,setGoals]=useState([]);
   const [inp,setInp]=useState('');
   const [linked,setLinked]=useState({});
   useEffect(()=>{ setGoals(DB.get(skey,[])); },[skey]);
   useEffect(()=>{
     if(type!=='week'||!start||!period) return;
-    const s=new Date(start+'T12:00:00'); s.setHours(0,0,0,0); const ws=(period-1)*7;
     const counts={};
-    for(let i=0;i<7;i++){ const d=new Date(s); d.setDate(d.getDate()+ws+i); const ts=DB.get('todos_'+fmt(d),[]); ts.forEach(t=>{ if(t.wgid){ if(!counts[t.wgid]) counts[t.wgid]={tot:0,done:0}; counts[t.wgid].tot++; if(t.done) counts[t.wgid].done++; } }); }
+    weekDays(start,period).forEach(dk=>{ const ts=DB.get('todos_'+dk,[]); ts.forEach(t=>{ if(t.wgid){ if(!counts[t.wgid]) counts[t.wgid]={tot:0,done:0}; counts[t.wgid].tot++; if(t.done) counts[t.wgid].done++; } }); });
     setLinked(counts);
   },[type,period,start,goals]);
   const save=g=>{ setGoals(g); DB.set(skey,g); };
   const add=()=>{ if(!inp.trim()) return; save([...goals,{id:genId(),text:inp.trim(),measurable:isMeas(inp),done:false}]); setInp(''); };
   const toggle=id=>save(goals.map(g=>g.id===id?{...g,done:!g.done}:g));
-  const del=id=>save(goals.filter(g=>g.id!==id));
+  const del=id=>{ if(full) save(goals.filter(g=>g.id!==id)); };
   let tpct=0,mc=0; goals.forEach(g=>{ if(!g.measurable) return; mc++; const lk=linked[g.id]; if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100; else if(g.done) tpct+=100; });
   const nm=goals.filter(g=>!g.measurable),nmd=nm.filter(g=>g.done).length;
   const ovr=goals.length===0?0:mc>0?(tpct/mc+(nm.length>0?(nmd/nm.length)*100:0))/(mc>0&&nm.length>0?2:1):nm.length>0?(nmd/nm.length)*100:0;
   return(
-    <div className="card">
-      <div className="ctitle">◎ {label} Goals</div>
-      {goals.length>0&&<PBar pct={ovr} label="Overall progress"/>}
-      {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">No goals yet — add one below</div></div>}
-      {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
-        <div key={g.id} className="gitem">
-          {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
-            {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
-          {g.measurable&&<div style={{width:20,flexShrink:0}}/>}
-          <div style={{flex:1}}>
-            <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done&&!g.measurable?'line-through':'none',color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
-            <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
-              <span className={'mbdg '+(g.measurable?'y':'n')}>{g.measurable?'◉ measurable':'◌ not measurable'}</span>
-              {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--acc2)'}}>{lk.done}/{lk.tot} tasks done</span>}
-            </div>
-            {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
-          </div>
-          <button className="tdel" onClick={()=>del(g.id)}>✕</button>
-        </div>);})}
-      <div className="row">
-        <input className="inp" placeholder="Add a goal…" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
-        <button className="btn" onClick={add}>+</button>
+    <div>
+      <div className={'pbanner '+(isplan?'plan':'lock')}>
+        <span className="pb-ico">{isplan?'📋':'🔒'}</span>
+        <div>
+          <div className={'pb-hd '+(isplan?'gld':'mu')}>{isplan?'Planning Day':'Mid-period — Light edits only'}</div>
+          <div className="pb-bd">{note}</div>
+        </div>
       </div>
-      {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'Measurable — progress tracked':'Not measurable — tick manually'}</div>}
+      <div className="card">
+        <div className="ctitle">◎ {label} Goals</div>
+        {goals.length>0&&<PBar pct={ovr} label="Overall progress"/>}
+        {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">{isplan?`Set your goals for ${label}`:`No goals set for ${label} yet`}</div></div>}
+        {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
+          <div key={g.id} className="gitem">
+            {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
+              {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
+            {g.measurable&&<div style={{width:20,flexShrink:0}}/>}
+            <div style={{flex:1}}>
+              <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done&&!g.measurable?'line-through':'none',color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
+              <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
+                <span className={'mbdg '+(g.measurable?'y':'n')}>{g.measurable?'◉ measurable':'◌ not measurable'}</span>
+                {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--acc2)'}}>{lk.done}/{lk.tot} tasks done</span>}
+              </div>
+              {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
+            </div>
+            {full?<button className="tdel" onClick={()=>del(g.id)}>✕</button>:<div style={{width:22}}/>}
+          </div>);})}
+        <div className="row">
+          <input className="inp" placeholder={full?'Add a goal…':'Add a goal (light edit)…'} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <button className="btn" onClick={add}>+</button>
+        </div>
+        {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'Measurable — progress tracked':'Not measurable — tick manually'}</div>}
+      </div>
     </div>
   );
 }
@@ -1016,6 +979,7 @@ function HabitsTab(){
   };
 
   const delHabit=id=>saveHabits(habits.filter(h=>h.id!==id));
+
   const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
 
   const weeks=[];
@@ -1038,6 +1002,7 @@ function HabitsTab(){
   const monthDone = habStats.reduce((s,h)=>s+h.done,0);
   const monthPoss = habStats.reduce((s,h)=>s+h.possible,0);
   const monthPct  = monthPoss>0?Math.round((monthDone/monthPoss)*100):0;
+
   const dayName = d => { const dt=new Date(yr,mo,d); return DAYS[dt.getDay()].slice(0,1); };
 
   return(
@@ -1049,6 +1014,7 @@ function HabitsTab(){
           <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
         </div>
       </div>
+
       <div className="card" style={{padding:'12px 0 8px'}}>
         <div style={{padding:'0 14px 8px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div className="ctitle" style={{marginBottom:0}}>☑ Habit Tracker</div>
@@ -1107,6 +1073,7 @@ function HabitsTab(){
           </table>
         </div>
       </div>
+
       <div className="card">
         <div className="ctitle">Analysis</div>
         <div className="anl-grid">
@@ -1142,19 +1109,20 @@ function HabitsTab(){
 }
 
 /* ─── Budget Planner ─── */
+// FIX: Single BUD_CATS definition (removed duplicate)
 const BUD_CATS = [
-  {id:'home',        name:'Home',                ico:'🏠', color:'#5b8dee', sub:['Rent/Mortgage','Utilities','Internet','Insurance']},
-  {id:'dailyliving', name:'Daily Living',         ico:'🛍️', color:'#fd7e14', sub:['Eating out','Coffee','Household items','Misc daily']},
-  {id:'dues',        name:'Dues',                 ico:'📋', color:'#20c997', sub:['Memberships','Union dues','Professional fees']},
-  {id:'subs',        name:'Subscriptions',        ico:'📱', color:'#6c63ff', sub:['Streaming','Apps','Software','Cloud storage']},
-  {id:'debts',       name:'Debts',                ico:'💳', color:'#ef5350', sub:['Credit card','Loan repayment','Finance']},
-  {id:'personal',    name:'Personal Expenditure', ico:'👤', color:'#e83e8c', sub:['Clothing','Leisure','Gifts','Hobbies']},
-  {id:'investment',  name:'Investment',           ico:'📈', color:'#f0a500', sub:['Stocks','Crypto','Pension','ISA']},
-  {id:'savings',     name:'Savings',              ico:'💰', color:'#27ae60', sub:['Emergency fund','Goals','Long-term']},
-  {id:'misc',        name:'Misc Payments',        ico:'📌', color:'#7a7a9a', sub:['Other','One-off payments']},
-  {id:'transport',   name:'Transportation',       ico:'🚗', color:'#4aaee0', sub:['Fuel','Public transport','Car insurance','Parking']},
-  {id:'groceries',   name:'Groceries',            ico:'🛒', color:'#e8a000', sub:['Supermarket','Fresh produce','Bulk shopping']},
-  {id:'personalcare',name:'Personal Care',        ico:'🧴', color:'#9b59b6', sub:['Haircut','Skincare','Toiletries','Gym']},
+  {id:'housing',    name:'Home',                ico:'🏠', color:'#5b8dee'},
+  {id:'dailyliving',name:'Daily Living',        ico:'🛍️', color:'#f0a500'},
+  {id:'dues',       name:'Dues',                ico:'📋', color:'#20c997'},
+  {id:'subs',       name:'Subscriptions',       ico:'📱', color:'#a855f7'},
+  {id:'debts',      name:'Debts',               ico:'💳', color:'#ef5350'},
+  {id:'personal',   name:'Personal Expenditure',ico:'👤', color:'#e83e8c'},
+  {id:'investment', name:'Investment',          ico:'📈', color:'#27ae60'},
+  {id:'savings',    name:'Savings',             ico:'💰', color:'#4caf50'},
+  {id:'misc',       name:'Misc Payments',       ico:'📌', color:'#7a7a9a'},
+  {id:'transport',  name:'Transportation',      ico:'🚗', color:'#fd7e14'},
+  {id:'groceries',  name:'Groceries',           ico:'🛒', color:'#f59e0b'},
+  {id:'care',       name:'Personal Care',       ico:'🧴', color:'#9b59b6'},
 ];
 
 const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1185,7 +1153,7 @@ function BudgetTab(){
   const [budgets,setBudgets]=useState({});
   const [income,setIncome]=useState({salary:'',other:'',other2:''});
   const [txs,setTxs]=useState([]);
-  const [form,setForm]=useState({desc:'',amount:'',catId:'dailyliving',type:'expense',date:todayStr()});
+  const [form,setForm]=useState({desc:'',amount:'',catId:'groceries',type:'expense',date:todayStr()});
   const [showForm,setShowForm]=useState(false);
   const [savingGoal,setSavingGoal]=useState('');
 
@@ -1203,12 +1171,7 @@ function BudgetTab(){
   const saveTxs=t=>{setTxs(t);DB.set('bud_txs_'+moKey,t);};
 
   const navMo=dir=>{let m=mo+dir,y=yr;if(m<0){m=11;y--;}if(m>11){m=0;y++;}setMo(m);setYr(y);};
-
-  // ── FIXED: total income = manual fields + income transactions ──
-  const manualIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
-  const txIncome=txs.filter(t=>t.type==='income').reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
-  const totalIncome=manualIncome+txIncome;
-
+  const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
   const expenseTxs=txs.filter(t=>t.type==='expense');
   const totalSpent=expenseTxs.reduce((s,t)=>s+(parseFloat(t.amount)||0),0);
   const savings=totalIncome-totalSpent;
@@ -1222,11 +1185,10 @@ function BudgetTab(){
   const addTx=()=>{
     if(!form.desc.trim()||!form.amount) return;
     saveTxs([{id:genId(),...form,amount:parseFloat(form.amount)},...txs]);
-    setForm({desc:'',amount:'',catId:'dailyliving',type:'expense',date:todayStr()});
+    setForm({desc:'',amount:'',catId:'groceries',type:'expense',date:todayStr()});
     setShowForm(false);
   };
 
-  // ── FIXED: annual helpers also include tx income ──
   const getMonthSpent=m=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
     const t=DB.get('bud_txs_'+mk,[]);
@@ -1235,10 +1197,7 @@ function BudgetTab(){
   const getMonthIncome=m=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
     const inc=DB.get('bud_income_'+mk,{salary:'',other:'',other2:''});
-    const manual=(parseFloat(inc.salary)||0)+(parseFloat(inc.other)||0)+(parseFloat(inc.other2)||0);
-    const txData=DB.get('bud_txs_'+mk,[]);
-    const txInc=txData.filter(x=>x.type==='income').reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
-    return manual+txInc;
+    return (parseFloat(inc.salary)||0)+(parseFloat(inc.other)||0)+(parseFloat(inc.other2)||0);
   };
   const getMonthCatSpent=(m,cid)=>{
     const mk=yr+'-'+String(m+1).padStart(2,'0');
@@ -1264,29 +1223,11 @@ function BudgetTab(){
 
       {sub==='overview'&&(
         <>
-          <div className="bsum">
-            <div className="bstat">
-              <div className="bnum neu">{fp(totalIncome)}</div>
-              <div className="blbl" style={{fontSize:'.6rem',color:'var(--muted)',marginTop:2}}>Income</div>
-              {txIncome>0&&<div style={{fontSize:'.58rem',color:'var(--acc2)',marginTop:2}}>+{fp(txIncome)} tx</div>}
-            </div>
-            <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl" style={{fontSize:'.6rem',color:'var(--muted)',marginTop:2}}>Spent</div></div>
-            <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl" style={{fontSize:'.6rem',color:'var(--muted)',marginTop:2}}>Left</div></div>
+          <div className="bsum" style={{gridTemplateColumns:'1fr 1fr 1fr',marginBottom:12}}>
+            <div className="bstat"><div className="bnum neu">{fp(totalIncome)}</div><div className="blbl">Income</div></div>
+            <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl">Spent</div></div>
+            <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl">Left</div></div>
           </div>
-
-          {/* income breakdown row when tx income exists */}
-          {txIncome>0&&(
-            <div style={{background:'var(--s3)',border:'1px solid var(--bdr)',borderRadius:10,padding:'9px 12px',marginBottom:12,display:'flex',gap:0}}>
-              <div style={{flex:1,textAlign:'center',borderRight:'1px solid rgba(255,255,255,.06)',paddingRight:8}}>
-                <div style={{fontSize:'.62rem',color:'var(--muted)',marginBottom:3}}>Fixed Income</div>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--acc2)',fontWeight:600}}>{fp(manualIncome)}</div>
-              </div>
-              <div style={{flex:1,textAlign:'center',paddingLeft:8}}>
-                <div style={{fontSize:'.62rem',color:'var(--muted)',marginBottom:3}}>Extra Income</div>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--ok)',fontWeight:600}}>+{fp(txIncome)}</div>
-              </div>
-            </div>
-          )}
 
           <div className="card">
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
@@ -1298,7 +1239,7 @@ function BudgetTab(){
                   <div>
                     <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:3}}>Saving Goal: {fp(savGoalNum)}</div>
                     <div className="pwrap"><div className="pbar" style={{width:Math.min(100,(savings/savGoalNum)*100)+'%'}}/></div>
-                    <div style={{fontSize:'.7rem',color:'var(--ok)',marginTop:2}}>{fp(Math.max(0,savings))} saved ({Math.round(Math.min(100,Math.max(0,(savings/savGoalNum)*100)))}%)</div>
+                    <div style={{fontSize:'.7rem',color:'var(--ok)',marginTop:2}}>{fp(Math.max(0,savings))} saved ({Math.round(Math.min(100,(savings/savGoalNum)*100))}%)</div>
                   </div>
                 )}
               </div>
@@ -1336,6 +1277,7 @@ function BudgetTab(){
                 </div>
               </div>
             )}
+
             {BUD_CATS.map(cat=>{
               const spent=spentByCat(cat.id);
               const bud=parseFloat(budgets[cat.id])||0;
@@ -1452,27 +1394,6 @@ function BudgetTab(){
                     </tr>
                   );
                 })}
-                {/* Income transactions row in annual view */}
-                {(()=>{
-                  const yearly=Array.from({length:12},(_,m)=>{
-                    const mk=yr+'-'+String(m+1).padStart(2,'0');
-                    const txData=DB.get('bud_txs_'+mk,[]);
-                    return txData.filter(x=>x.type==='income').reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
-                  });
-                  const total=yearly.reduce((s,v)=>s+v,0);
-                  if(total===0) return null;
-                  return(
-                    <tr style={{background:'rgba(76,175,80,.06)'}}>
-                      <td style={{padding:'5px 10px',color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.06)',zIndex:1}}>Extra / Transaction Income</td>
-                      {yearly.map((v,m)=>(
-                        <td key={m} style={{padding:'5px 8px',textAlign:'center',color:v>0?'var(--ok)':'var(--muted)'}}>
-                          {v>0?'+£'+v.toFixed(0):'—'}
-                        </td>
-                      ))}
-                      <td style={{padding:'5px 8px',textAlign:'center',fontWeight:600,color:'var(--ok)'}}>+£{total.toFixed(0)}</td>
-                    </tr>
-                  );
-                })()}
                 <tr style={{background:'rgba(76,175,80,.08)',borderTop:'1px solid rgba(76,175,80,.2)'}}>
                   <td style={{padding:'6px 10px',fontWeight:700,color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>Total Income</td>
                   {Array.from({length:12},(_,m)=>{
@@ -1539,12 +1460,6 @@ function BudgetTab(){
                 onChange={e=>saveIncome({...income,[k]:e.target.value})}/>
             </div>
           ))}
-          {txIncome>0&&(
-            <div style={{background:'rgba(76,175,80,.08)',border:'1px solid rgba(76,175,80,.2)',borderRadius:8,padding:'9px 12px',marginBottom:12}}>
-              <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:3}}>Extra income from transactions</div>
-              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.1rem',color:'var(--ok)',fontWeight:600}}>+{fp(txIncome)}</div>
-            </div>
-          )}
           <div style={{background:'var(--s3)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:12}}>
             <span style={{fontSize:'.82rem',color:'var(--muted)'}}>Total Income</span>
             <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.2rem',color:'var(--acc2)',fontWeight:600}}>{fp(totalIncome)}</span>
@@ -1577,8 +1492,8 @@ function BudgetTab(){
           </div>
           <div style={{display:'flex',gap:8,marginBottom:10,fontSize:'.75rem'}}>
             <div style={{flex:1,background:'rgba(76,175,80,.1)',border:'1px solid rgba(76,175,80,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
-              <div style={{color:'var(--ok)',fontWeight:600}}>{fp(txIncome)}</div>
-              <div style={{color:'var(--muted)',fontSize:'.65rem'}}>Tx Income</div>
+              <div style={{color:'var(--ok)',fontWeight:600}}>{fp(txs.filter(t=>t.type==='income').reduce((s,t)=>s+(parseFloat(t.amount)||0),0))}</div>
+              <div style={{color:'var(--muted)',fontSize:'.65rem'}}>Income</div>
             </div>
             <div style={{flex:1,background:'rgba(239,83,80,.1)',border:'1px solid rgba(239,83,80,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
               <div style={{color:'var(--danger)',fontWeight:600}}>{fp(totalSpent)}</div>
@@ -1590,10 +1505,10 @@ function BudgetTab(){
             const cat=BUD_CATS.find(c=>c.id===t.catId)||BUD_CATS[BUD_CATS.length-1];
             return(
               <div key={t.id} style={{display:'flex',alignItems:'center',gap:9,padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
-                <span style={{fontSize:'1rem',flexShrink:0}}>{t.type==='income'?'💵':cat.ico}</span>
+                <span style={{fontSize:'1rem',flexShrink:0}}>{cat.ico}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:'.83rem'}}>{t.desc}</div>
-                  <div style={{fontSize:'.67rem',color:'var(--muted)'}}>{t.type==='income'?'Income':cat.name} · {t.date}</div>
+                  <div style={{fontSize:'.67rem',color:'var(--muted)'}}>{cat.name} · {t.date}</div>
                 </div>
                 <span style={{fontWeight:600,flexShrink:0,color:t.type==='income'?'var(--ok)':'var(--cream)'}}>
                   {t.type==='income'?'+':'-'}{fp(t.amount)}
@@ -1609,6 +1524,77 @@ function BudgetTab(){
   );
 }
 
+/* ─── Settings Modal ─── */
+// FIX: Single SettingsModal definition (removed duplicate broken fragment)
+function SettingsModal({start, onClose, onUpdateStart}){
+  const [nd, setNd] = useState(start||'');
+  const [saved, setSaved] = useState(false);
+
+  const doSave = () => {
+    if(!nd) return;
+    DB.set('start', nd);
+    onUpdateStart(nd);
+    setSaved(true);
+    setTimeout(()=>{ setSaved(false); onClose(); }, 900);
+  };
+
+  // FIX: calcWeek takes a date string, not a day number — pass nd (the date string)
+  const pd  = nd ? calcDay(nd)    : null;
+  const pwk = nd ? calcWeek(nd)   : null;
+  const pm  = nd ? calcMonth(nd)  : null;
+  const py  = pd ? calcYear(pd)   : null;
+
+  const fmtDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : 'Not set';
+
+  return(
+    <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal">
+        <div className="mtitle">Settings</div>
+
+        <div style={{background:'var(--s3)',borderRadius:10,padding:'11px 13px',marginBottom:14}}>
+          <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.08em'}}>Currently stored start date</div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.05rem',color:'var(--acc2)',fontWeight:600}}>
+            {fmtDate(start)}
+          </div>
+          {start&&(
+            <div style={{fontSize:'.75rem',color:'var(--muted)',marginTop:5,display:'flex',gap:12,flexWrap:'wrap'}}>
+              <span style={{color:'var(--cream)'}}>Day {calcDay(start)}</span>
+              <span style={{color:'var(--cream)'}}>Wk {calcWeek(start)}</span>
+              <span style={{color:'var(--cream)'}}>Mo {calcMonth(start)}</span>
+              <span style={{color:'var(--cream)'}}>Yr {calcYear(calcDay(start))}</span>
+            </div>
+          )}
+        </div>
+
+        <div className="frow">
+          <label className="flbl">Correct Start Date</label>
+          <input className="inp" type="date" value={nd} max={todayStr()} onChange={e=>setNd(e.target.value)}/>
+        </div>
+
+        {pd&&nd!==start&&(
+          <div style={{background:'rgba(108,99,255,.08)',border:'1px solid rgba(108,99,255,.25)',borderRadius:9,padding:'10px 13px',marginBottom:12}}>
+            <div style={{fontSize:'.72rem',color:'var(--acc2)',marginBottom:6,fontWeight:600}}>Preview with new date:</div>
+            <div style={{display:'flex',gap:16,fontSize:'.82rem',flexWrap:'wrap'}}>
+              <span>Day <strong>{pd}</strong></span>
+              <span>Week <strong>{pwk}</strong></span>
+              <span>Month <strong>{pm}</strong></span>
+              <span>Year <strong>{py}</strong></span>
+            </div>
+          </div>
+        )}
+
+        <div className="macts">
+          <button className="btn btng" onClick={onClose} style={{flex:1}}>Cancel</button>
+          <button className="btn" onClick={doSave} disabled={!nd||nd===start||saved} style={{flex:1}}>
+            {saved?'Saved!':'Save and Apply'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Tab config ─── */
 const TABS=[
   {id:'daily', ico:'✦',lbl:'Today'},
   {id:'goals', ico:'◎',lbl:'Goals'},
@@ -1620,12 +1606,14 @@ const TABS=[
   {id:'meet',  ico:'◈',lbl:'Meeting'},
 ];
 
+/* ─── App Root ─── */
 function App(){
   const [tab,setTab]=useState('daily');
   const [start,setStart]=useState(undefined);
   const [syncReady,setSyncReady]=useState(false);
   const [syncStatus,setSyncStatus]=useState('offline');
   const [showSync,setShowSync]=useState(false);
+  const [showSettings,setShowSettings]=useState(false);
 
   useEffect(()=>{
     Sync.onStatus(setSyncStatus);
@@ -1643,6 +1631,7 @@ function App(){
   },[]);
 
   const onSetup = d => { DB.set('start',d); setStart(d); };
+  const onUpdateStart = d => setStart(d);
 
   if(!syncReady) return(
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:14}}>
@@ -1659,10 +1648,11 @@ function App(){
 
   if(!start) return <Setup onDone={onSetup}/>;
 
-  const dn=calcDay(start),wn=calcWeek(dn),mn=calcMonth(start),yn=calcYear(dn);
+  const dn=calcDay(start),wn=calcWeek(start),mn=calcMonth(start),yn=calcYear(dn);
 
   return(
     <div className="app">
+      {/* FIX: Single Settings button in header */}
       <header className="hdr">
         <div className="hdr-t">Journey</div>
         <div className="hdr-r">
@@ -1677,6 +1667,7 @@ function App(){
             onClick={()=>setShowSync(true)}
             title={syncStatus==='synced'?'Synced':syncStatus==='syncing'?'Syncing…':syncStatus==='error'?'Sync error — tap to fix':'Tap to set up sync'}
           />
+          <button onClick={()=>setShowSettings(true)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--muted)',fontSize:'.75rem',padding:'2px 4px',lineHeight:1,letterSpacing:'.03em',fontFamily:"'DM Sans',sans-serif"}}>Settings</button>
         </div>
       </header>
       <main className="main">
@@ -1695,11 +1686,14 @@ function App(){
             <span className="nico">{t.ico}</span><span>{t.lbl}</span>
           </button>))}
       </nav>
+      {/* FIX: Single SyncModal and single SettingsModal render */}
       {showSync && <SyncModal onClose={()=>setShowSync(false)} onSynced={()=>setShowSync(false)}/>}
+      {showSettings && <SettingsModal start={start} onClose={()=>setShowSettings(false)} onUpdateStart={onUpdateStart}/>}
     </div>
   );
 }
 
+/* ─── Error Boundary ─── */
 class ErrorBoundary extends React.Component {
   constructor(props){ super(props); this.state={error:null}; }
   static getDerivedStateFromError(e){ return {error:e}; }
