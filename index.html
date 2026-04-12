@@ -9,198 +9,401 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
-:root{--bg:#07080f;--sf:#0e1120;--s2:#151929;--s3:#1c2138;--gold:#6c63ff;--gold2:#a89cff;--cream:#e8eaf6;--muted:#5a6080;--danger:#ef5350;--ok:#4caf50;--bdr:rgba(108,99,255,.18);--acc:#6c63ff;--acc2:#a89cff;--card:#111426}
+/* ── Colour tokens ───────────────────────────────── */
+:root {
+  /* Reds */
+  --red-deep:    #3D0A14;
+  --red-burgundy:#7B1D2E;
+  --red-garnet:  #B5293C;
+  --red-terra:   #D4736B;
+  --red-blush:   #EEC4BC;
+  /* Golds */
+  --gold-dark:   #2C1F0A;
+  --gold-bronze: #8C6B2E;
+  --gold-champ:  #C4963A;
+  --gold-warm:   #E8C87A;
+  /* Neutrals */
+  --n-ebony:     #1E1410;
+  --n-walnut:    #4A3530;
+  --n-stone:     #9C8A82;
+  --n-linen:     #EDE4DC;
+  /* Accents */
+  --amethyst:    #8880B0;
+  --sage:        #50A078;
+  --steel:       #5A8CC8;
+  /* Section colours */
+  --c-daily:    #B5293C;
+  --c-goals:    #9B2335;
+  --c-habits:   #50A078;
+  --c-budget:   #C4963A;
+  --c-bible:    #8880B0;
+  --c-affirm:   #D4736B;
+  --c-cal:      #7A9E9F;
+  --c-meet:     #5A8CC8;
+  /* Glass */
+  --glass-bg:         rgba(255,255,255,0.06);
+  --glass-bg-strong:  rgba(255,255,255,0.10);
+  --glass-border:     rgba(255,255,255,0.12);
+  --glass-border-str: rgba(255,255,255,0.20);
+  /* Text */
+  --text-primary:   rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.60);
+  --text-muted:     rgba(255,255,255,0.38);
+  /* Legacy aliases (used throughout JSX) */
+  --bg:    #131823;
+  --sf:    rgba(255,255,255,0.06);
+  --s2:    rgba(255,255,255,0.04);
+  --s3:    rgba(255,255,255,0.09);
+  --card:  rgba(255,255,255,0.06);
+  --cream: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.42);
+  --bdr:   rgba(255,255,255,0.12);
+  --ok:    #50A078;
+  --danger:#B5293C;
+  /* Default section accent */
+  --sec:  #B5293C;
+  --sec2: #C4963A;
+  --acc:  var(--sec);
+  --acc2: var(--sec2);
+  --gold: #C4963A;
+  --gold2:#E8C87A;
+}
+
+/* ── Per-tab section overrides ───────────────────── */
+.tab-daily  { --sec:#B5293C; --sec2:#D4736B; }
+.tab-goals  { --sec:#9B2335; --sec2:#B5293C; }
+.tab-habits { --sec:#50A078; --sec2:#7AC8A0; }
+.tab-budget { --sec:#C4963A; --sec2:#E8C87A; }
+.tab-bible  { --sec:#8880B0; --sec2:#A89CCF; }
+.tab-affirm { --sec:#D4736B; --sec2:#EEC4BC; }
+.tab-cal    { --sec:#7A9E9F; --sec2:#9ABCBD; }
+.tab-meet   { --sec:#5A8CC8; --sec2:#82AADE; }
+
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body,#root{height:100%;width:100%;overflow:hidden}
-body{background:var(--bg);color:var(--cream);font-family:'DM Sans',sans-serif}
+body{background:var(--bg);color:var(--cream);font-family:'DM Sans',sans-serif;transition:background .5s ease}
 #root{display:flex;flex-direction:column}
 .app{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden}
-/* Header */
-.hdr{background:linear-gradient(135deg,#07080f 0%,#131630 100%);border-bottom:1px solid var(--bdr);padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.hdr-t{font-family:'Cormorant Garamond',serif;font-size:1.45rem;color:var(--acc2);font-weight:600;letter-spacing:.03em}
-.hdr-r{display:flex;align-items:center;gap:7px}
-.chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
-.chip{background:var(--s3);border:1px solid var(--bdr);border-radius:20px;padding:3px 9px;font-size:.65rem;color:var(--acc2);font-weight:500;white-space:nowrap}
-/* Sync dot */
+
+/* ── Header ──────────────────────────────────────── */
+.hdr{
+  background:rgba(12,8,6,0.88);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-bottom:1px solid rgba(255,255,255,0.09);
+  padding:11px 16px 9px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.hdr-t{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.25rem;color:var(--text-primary);
+  font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+}
+.hdr-r{display:flex;align-items:center;gap:8px}
+.chips{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.chip{
+  background:rgba(196,150,58,0.14);
+  border:1px solid rgba(196,150,58,0.28);
+  border-radius:20px;padding:2px 8px;
+  font-size:.62rem;color:var(--gold-warm);font-weight:600;
+  white-space:nowrap;letter-spacing:.06em;
+}
+
+/* ── Sync dot ─────────────────────────────────────── */
 .syncdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;cursor:pointer;transition:background .3s}
 .syncdot.synced{background:var(--ok);box-shadow:0 0 6px var(--ok)}
-.syncdot.syncing{background:var(--acc);animation:pulse 1s infinite}
+.syncdot.syncing{background:var(--gold-champ);animation:pulse 1s infinite}
 .syncdot.error{background:var(--danger)}
-.syncdot.offline{background:var(--muted)}
+.syncdot.offline{background:rgba(255,255,255,0.25)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-/* Main */
+
+/* ── Background theme picker ──────────────────────── */
+.bg-picker{
+  display:flex;gap:6px;padding:10px 16px 6px;flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  background:rgba(0,0,0,0.2);
+}
+.bg-btn{
+  flex:1;height:36px;border-radius:8px;
+  border:1.5px solid transparent;
+  cursor:pointer;display:flex;align-items:flex-end;padding:4px 7px;
+  transition:border-color .2s;
+}
+.bg-btn span{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);font-weight:500}
+.bg-btn.active{border-color:rgba(255,255,255,0.55)}
+
+/* ── Main ─────────────────────────────────────────── */
 .main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column}
 .sec{padding:14px}
-/* Nav */
-.bnav{display:flex;background:var(--sf);border-top:1px solid var(--bdr);flex-shrink:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+
+/* ── Nav ──────────────────────────────────────────── */
+.bnav{
+  display:flex;
+  background:rgba(12,8,6,0.90);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-top:1px solid rgba(255,255,255,0.08);
+  flex-shrink:0;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
+}
 .bnav::-webkit-scrollbar{display:none}
-.nbtn{flex:0 0 auto;min-width:52px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 6px;background:none;border:none;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.56rem;font-weight:500;transition:color .2s}
-.nbtn.on{color:var(--acc2)}.nico{font-size:1.1rem;line-height:1}
-.nbtn.on .nico{filter:drop-shadow(0 0 4px var(--acc))}
-/* Cards */
-.card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:11px}
-.ctitle{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--acc2);font-weight:600;margin-bottom:11px;display:flex;align-items:center;gap:7px}
-/* Progress */
-.pwrap{background:var(--s3);border-radius:99px;height:6px;overflow:hidden;margin:7px 0}
-.pbar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:99px;transition:width .4s}
-.plbl{font-size:.73rem;color:var(--muted);display:flex;justify-content:space-between}
-/* Todo */
-.titem{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04);animation:fi .2s ease}
+.nbtn{
+  flex:0 0 auto;min-width:52px;display:flex;flex-direction:column;
+  align-items:center;gap:2px;padding:7px 6px;
+  background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,0.32);font-family:'DM Sans',sans-serif;
+  font-size:.54rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+  transition:color .2s;
+}
+.nbtn.on{color:var(--text-primary)}
+.nico{font-size:1.1rem;line-height:1}
+.nbtn.on .nico{
+  filter:drop-shadow(0 0 5px currentColor);
+}
+
+/* Coloured active indicator per tab */
+.nbtn.on.nav-daily  { color:#B5293C; }
+.nbtn.on.nav-goals  { color:#9B2335; }
+.nbtn.on.nav-habits { color:#50A078; }
+.nbtn.on.nav-budget { color:#C4963A; }
+.nbtn.on.nav-bible  { color:#8880B0; }
+.nbtn.on.nav-affirm { color:#D4736B; }
+.nbtn.on.nav-cal    { color:#7A9E9F; }
+.nbtn.on.nav-meet   { color:#5A8CC8; }
+
+/* ── Glass cards ──────────────────────────────────── */
+.card{
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:14px;
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  padding:14px;margin-bottom:11px;
+}
+
+/* ── Progress ─────────────────────────────────────── */
+.pwrap{background:rgba(255,255,255,0.09);border-radius:99px;height:5px;overflow:hidden;margin:7px 0}
+.pbar{height:100%;background:linear-gradient(90deg,var(--sec),var(--sec2));border-radius:99px;transition:width .4s}
+.plbl{font-size:.68rem;color:var(--muted);display:flex;justify-content:space-between;letter-spacing:.05em}
+
+/* ── Section title ────────────────────────────────── */
+.ctitle{
+  font-family:'Cormorant Garamond',serif;
+  font-size:.88rem;color:var(--sec2);
+  font-weight:600;margin-bottom:11px;
+  display:flex;align-items:center;gap:7px;
+  letter-spacing:.14em;text-transform:uppercase;
+}
+
+/* ── Todo ─────────────────────────────────────────── */
+.titem{display:flex;align-items:flex-start;gap:9px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);animation:fi .2s ease}
 .titem:last-child{border-bottom:none}
-.tchk{width:20px;height:20px;border-radius:6px;border:2px solid var(--acc);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background .2s}
-.tchk.on{background:var(--acc);border-color:var(--acc)}
+.tchk{width:20px;height:20px;border-radius:6px;border:2px solid var(--sec);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:background .2s}
+.tchk.on{background:var(--sec);border-color:var(--sec)}
 .ttxt{flex:1;font-size:.88rem;line-height:1.4;cursor:pointer}
 .ttxt.done{text-decoration:line-through;color:var(--muted)}
-.ttag{font-size:.63rem;background:var(--s3);border:1px solid var(--bdr);border-radius:99px;padding:1px 7px;color:var(--acc2);margin-top:2px;display:inline-block}
+.ttag{font-size:.63rem;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:99px;padding:1px 7px;color:var(--sec2);margin-top:2px;display:inline-block;letter-spacing:.05em}
 .tdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.95rem;padding:2px 5px;opacity:.5;line-height:1}
 .tdel:hover{opacity:1;color:var(--danger)}
-/* Inputs */
+
+/* ── Inputs ───────────────────────────────────────── */
 .row{display:flex;gap:7px;margin-top:10px}
-.inp{flex:1;background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:10px 11px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
-.inp:focus{border-color:var(--gold)}.inp::placeholder{color:var(--muted)}
+.inp{
+  flex:1;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.13);
+  border-radius:8px;padding:10px 11px;
+  color:var(--cream);font-family:'DM Sans',sans-serif;
+  font-size:.88rem;outline:none;transition:border-color .2s;
+}
+.inp:focus{border-color:var(--sec)}
+.inp::placeholder{color:var(--muted)}
 .inp-sm{padding:8px 10px;font-size:.82rem}
 textarea.inp{resize:vertical;min-height:78px;line-height:1.5}
-.btn{background:var(--acc);color:#fff;border:none;border-radius:8px;padding:10px 15px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer;transition:background .2s;flex-shrink:0}
-.btn:hover{background:var(--acc2)}
-.btng{background:var(--s2);color:var(--cream);border:1px solid var(--bdr)}
-.btng:hover{background:var(--s2);border-color:var(--gold);color:var(--cream)}
-.btnsm{padding:6px 11px;font-size:.78rem}
+select.inp option{background:#1E1410}
+
+.btn{
+  background:var(--sec);color:#fff;border:none;
+  border-radius:8px;padding:10px 15px;
+  font-family:'DM Sans',sans-serif;font-weight:600;
+  font-size:.85rem;cursor:pointer;transition:all .2s;flex-shrink:0;
+  letter-spacing:.04em;
+}
+.btn:hover{opacity:.85}
+.btng{background:rgba(255,255,255,0.07);color:var(--cream);border:1px solid var(--glass-border)}
+.btng:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.22)}
+.btnsm{padding:6px 11px;font-size:.75rem;letter-spacing:.05em}
 .btnfull{width:100%}
-/* Tabs */
+
+/* ── Tabs ─────────────────────────────────────────── */
 .stabs{display:flex;gap:5px;margin-bottom:13px;flex-wrap:wrap}
-.stab{background:var(--s3);border:none;border-radius:20px;padding:5px 13px;font-size:.76rem;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s}
-.stab.on{background:var(--acc);color:#fff;font-weight:600}
-/* Goals */
-.gitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.stab{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:20px;padding:5px 13px;
+  font-size:.72rem;cursor:pointer;
+  color:var(--muted);font-family:'DM Sans',sans-serif;
+  transition:all .2s;letter-spacing:.07em;text-transform:uppercase;
+}
+.stab.on{background:var(--sec);border-color:var(--sec);color:#fff;font-weight:600}
+
+/* ── Goals ────────────────────────────────────────── */
+.gitem{display:flex;align-items:flex-start;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .gitem:last-child{border-bottom:none}
-.mbdg{font-size:.61rem;border-radius:99px;padding:2px 7px;border:1px solid;display:inline-block;margin-top:3px}
-.mbdg.y{color:var(--ok);border-color:var(--ok);background:rgba(76,175,80,.08)}
-.mbdg.n{color:var(--muted);border-color:var(--muted);background:rgba(122,122,154,.08)}
-/* Date nav */
+.mbdg{font-size:.61rem;border-radius:99px;padding:2px 7px;border:1px solid;display:inline-block;margin-top:3px;letter-spacing:.05em}
+.mbdg.y{color:var(--ok);border-color:var(--ok);background:rgba(80,160,120,.10)}
+.mbdg.n{color:var(--muted);border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.04)}
+
+/* ── Date nav ─────────────────────────────────────── */
 .dnav{display:flex;align-items:center;gap:9px}
-.dnbtn{background:var(--s2);border:1px solid var(--bdr);border-radius:6px;padding:5px 10px;color:var(--cream);cursor:pointer;font-size:.9rem;line-height:1}
-.dlbl{font-family:'Cormorant Garamond',serif;font-size:.95rem;color:var(--acc2);flex:1;text-align:center}
-/* Day stats */
+.dnbtn{
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.13);
+  border-radius:6px;padding:5px 10px;
+  color:var(--cream);cursor:pointer;font-size:.9rem;line-height:1;
+  transition:background .15s;
+}
+.dnbtn:hover{background:rgba(255,255,255,0.12)}
+.dlbl{font-family:'Cormorant Garamond',serif;font-size:.95rem;color:var(--sec2);flex:1;text-align:center;letter-spacing:.08em}
+
+/* ── Day stats ────────────────────────────────────── */
 .dstats{display:flex;gap:9px;margin-bottom:13px}
-.dstat{flex:1;background:var(--s3);border-radius:10px;padding:9px;text-align:center;border:1px solid var(--bdr);min-width:0}
-.dsnum{font-family:'Cormorant Garamond',serif;font-size:1.55rem;color:var(--acc2);line-height:1}.dslbl{font-size:.62rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.07em}
-/* Quote */
-.gquote{font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--acc2);font-size:.97rem;text-align:center;padding:11px;border-left:2px solid var(--acc);margin-bottom:13px;background:rgba(108,99,255,.05);border-radius:0 8px 8px 0}
-/* Affirm */
-.aitem{display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.dstat{
+  flex:1;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:10px;padding:9px;text-align:center;min-width:0;
+  backdrop-filter:blur(8px);
+}
+.dsnum{font-family:'Cormorant Garamond',serif;font-size:1.55rem;color:var(--sec2);line-height:1}
+.dslbl{font-size:.58rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.1em}
+
+/* ── Quote ────────────────────────────────────────── */
+.gquote{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  color:var(--sec2);font-size:.95rem;text-align:center;
+  padding:11px;border-left:2px solid var(--sec);
+  margin-bottom:13px;background:rgba(255,255,255,0.04);
+  border-radius:0 10px 10px 0;
+  backdrop-filter:blur(8px);letter-spacing:.02em;
+}
+
+/* ── Affirmations ─────────────────────────────────── */
+.aitem{display:flex;gap:9px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .aitem:last-child{border-bottom:none}
-.anum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--acc);opacity:.7;width:22px;flex-shrink:0}
+.anum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--sec);opacity:.7;width:22px;flex-shrink:0}
 .atxt{flex:1;font-size:.88rem;line-height:1.4}
-/* Calendar */
+
+/* ── Calendar ─────────────────────────────────────── */
 .cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:11px}
-.cdname{text-align:center;font-size:.63rem;color:var(--muted);padding:3px 0;font-weight:600}
+.cdname{text-align:center;font-size:.58rem;color:var(--muted);padding:3px 0;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 .cday{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.78rem;cursor:pointer;position:relative;transition:background .15s}
-.cday:hover{background:var(--s3)}
-.cday.today{background:var(--acc);color:#fff;font-weight:700}
-.cday.sel:not(.today){background:var(--s3);font-weight:600;outline:1px solid var(--acc)}
-.cday.hase::after{content:'';position:absolute;bottom:2px;width:3px;height:3px;border-radius:50%;background:var(--gold2)}
-.cday.today.hase::after{background:#0f0f14}
-.cday.oth{color:var(--muted);opacity:.3;pointer-events:none}
+.cday:hover{background:rgba(255,255,255,0.09)}
+.cday.today{background:var(--sec);color:#fff;font-weight:700}
+.cday.sel:not(.today){background:rgba(255,255,255,0.08);font-weight:600;outline:1px solid var(--sec)}
+.cday.hase::after{content:'';position:absolute;bottom:2px;width:3px;height:3px;border-radius:50%;background:var(--sec2)}
+.cday.today.hase::after{background:rgba(255,255,255,0.6)}
+.cday.oth{color:var(--muted);opacity:.25;pointer-events:none}
 .chdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
-.cmo{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--acc2)}
-.evitem{display:flex;gap:9px;align-items:flex-start;padding:9px;background:var(--s3);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--acc)}
-.evtime{font-size:.73rem;color:var(--acc2);font-weight:600;white-space:nowrap;min-width:55px}
+.cmo{font-family:'Cormorant Garamond',serif;font-size:1.05rem;color:var(--sec2);letter-spacing:.08em}
+.evitem{display:flex;gap:9px;align-items:flex-start;padding:9px;background:rgba(255,255,255,0.05);border-radius:8px;margin-bottom:5px;border-left:3px solid var(--sec)}
+.evtime{font-size:.73rem;color:var(--sec2);font-weight:600;white-space:nowrap;min-width:55px;letter-spacing:.05em}
 .evtit{flex:1;font-size:.86rem}
 .evdel{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;opacity:.6}
 .evdel:hover{opacity:1;color:var(--danger)}
-/* Meeting */
+
+/* ── Meeting ──────────────────────────────────────── */
 .swgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}
-.swcard{background:var(--s3);border-radius:8px;padding:9px}
-.swlbl{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px}
+.swcard{background:rgba(255,255,255,0.05);border-radius:10px;padding:9px;border:1px solid rgba(255,255,255,0.08)}
+.swlbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:5px;font-weight:600}
 textarea.swinp{width:100%;background:transparent;border:none;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:.81rem;resize:none;outline:none;min-height:58px;line-height:1.5}
-/* Modal / overlay */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:14px}
-.modal{background:var(--sf);border:1px solid var(--bdr);border-radius:14px 14px 10px 10px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:18px}
-.mtitle{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--acc2);margin-bottom:14px}
+
+/* ── Modal / overlay ──────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.80);z-index:100;display:flex;align-items:flex-end;justify-content:center;padding:14px;backdrop-filter:blur(4px)}
+.modal{
+  background:rgba(22,15,12,0.95);
+  border:1px solid rgba(255,255,255,0.14);
+  border-radius:14px 14px 10px 10px;
+  width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:18px;
+  backdrop-filter:blur(24px);
+}
+.mtitle{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--sec2);margin-bottom:14px;letter-spacing:.1em;text-transform:uppercase}
 .macts{display:flex;gap:7px;margin-top:13px}
-/* Form */
-.flbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;font-weight:600;display:block}
+
+/* ── Form ─────────────────────────────────────────── */
+.flbl{font-size:.65rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:4px;font-weight:600;display:block}
 .frow{margin-bottom:11px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-/* Planning banner */
-.pbanner{border-radius:9px;padding:9px 13px;margin-bottom:11px;display:flex;align-items:flex-start;gap:9px}
-.pbanner.plan{background:rgba(108,99,255,.09);border:1px solid rgba(108,99,255,.3)}
-.pbanner.lock{background:rgba(122,122,154,.06);border:1px solid rgba(122,122,154,.18)}
+
+/* ── Planning banner ──────────────────────────────── */
+.pbanner{border-radius:10px;padding:9px 13px;margin-bottom:11px;display:flex;align-items:flex-start;gap:9px}
+.pbanner.plan{background:rgba(181,41,60,0.10);border:1px solid rgba(181,41,60,0.28)}
+.pbanner.lock{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09)}
 .pb-ico{font-size:1rem;flex-shrink:0;margin-top:1px}
-.pb-hd{font-size:.73rem;font-weight:600;margin-bottom:2px}
-.pb-hd.gld{color:var(--acc2)}.pb-hd.mu{color:var(--muted)}
-.pb-bd{font-size:.73rem;color:var(--muted);line-height:1.4}
-/* misc */
-.ldot{width:7px;height:7px;border-radius:50%;background:var(--acc);display:inline-block;margin-right:3px}
-.wpick{background:var(--s2);border:1px solid var(--bdr);border-radius:8px;padding:7px 11px;margin-top:7px}
-.wpick label{font-size:.76rem;color:var(--muted);display:block;margin-bottom:5px}
-select.inp option{background:var(--s2)}
+.pb-hd{font-size:.7rem;font-weight:600;margin-bottom:2px;letter-spacing:.08em;text-transform:uppercase}
+.pb-hd.gld{color:var(--gold-warm)}.pb-hd.mu{color:var(--muted)}
+.pb-bd{font-size:.72rem;color:var(--muted);line-height:1.4}
+
+/* ── Misc ─────────────────────────────────────────── */
 .empty{text-align:center;padding:24px 14px;color:var(--muted)}
-.eico{font-size:1.8rem;margin-bottom:7px}.etxt{font-size:.83rem}
-.hint{font-size:.73rem;margin-top:5px}
+.eico{font-size:1.8rem;margin-bottom:7px}.etxt{font-size:.83rem;letter-spacing:.04em}
+.hint{font-size:.72rem;margin-top:5px;letter-spacing:.04em}
 .hint.ok{color:var(--ok)}.hint.mu{color:var(--muted)}
 @keyframes fi{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:99px}
-/* Setup / loading */
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:99px}
+
+/* ── Setup screen ─────────────────────────────────── */
 .setup{position:fixed;inset:0;background:var(--bg);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center}
-.setup-t{font-family:'Cormorant Garamond',serif;font-size:2.2rem;color:var(--acc2);margin-bottom:8px}
-.setup-s{font-size:.88rem;color:var(--muted);margin-bottom:28px;line-height:1.6;max-width:300px}
+.setup-t{font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:var(--gold-warm);margin-bottom:6px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.setup-s{font-size:.85rem;color:var(--muted);margin-bottom:28px;line-height:1.7;max-width:300px;letter-spacing:.03em}
 .setup-f{width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px}
-/* Sync setup modal */
+
+/* ── Sync setup ───────────────────────────────────── */
 .step{display:flex;gap:11px;margin-bottom:16px}
-.step-num{width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--red-garnet);color:#fff;font-weight:700;font-size:.8rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
 .step-body{flex:1}
-.step-title{font-weight:600;font-size:.88rem;margin-bottom:4px;color:var(--cream)}
+.step-title{font-weight:600;font-size:.88rem;margin-bottom:4px;color:var(--cream);letter-spacing:.04em}
 .step-desc{font-size:.8rem;color:var(--muted);line-height:1.5;margin-bottom:6px}
-.code-box{background:var(--bg);border:1px solid var(--bdr);border-radius:7px;padding:9px 11px;font-family:monospace;font-size:.72rem;color:var(--acc2);line-height:1.6;white-space:pre-wrap;word-break:break-all;cursor:pointer;position:relative}
+.code-box{background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:9px 11px;font-family:monospace;font-size:.72rem;color:var(--gold-warm);line-height:1.6;white-space:pre-wrap;word-break:break-all;cursor:pointer;position:relative}
 .code-box:hover::after{content:'tap to copy';position:absolute;top:4px;right:6px;font-size:.6rem;color:var(--muted);font-family:'DM Sans',sans-serif}
 .copied{color:var(--ok) !important}
 .sync-status-row{display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:8px;margin-bottom:12px}
-.sync-status-row.synced{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2)}
-.sync-status-row.error{background:rgba(192,57,43,.08);border:1px solid rgba(192,57,43,.2)}
-.sync-status-row.offline{background:var(--s3);border:1px solid var(--bdr)}
-.sync-status-row.syncing{background:rgba(201,168,76,.06);border:1px solid rgba(201,168,76,.2)}
-.divider{height:1px;background:var(--bdr);margin:16px 0}
-/* Habit tracker */
+.sync-status-row.synced{background:rgba(80,160,120,.08);border:1px solid rgba(80,160,120,.2)}
+.sync-status-row.error{background:rgba(181,41,60,.08);border:1px solid rgba(181,41,60,.2)}
+.sync-status-row.offline{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10)}
+.sync-status-row.syncing{background:rgba(196,150,58,.06);border:1px solid rgba(196,150,58,.2)}
+.divider{height:1px;background:rgba(255,255,255,0.08);margin:16px 0}
+
+/* ── Habit tracker ────────────────────────────────── */
 .hab-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -14px;padding:0 14px 8px}
 .hab-tbl{border-collapse:collapse;font-size:.7rem;white-space:nowrap}
-.hab-name{text-align:left;padding:5px 8px 5px 0;font-size:.78rem;color:var(--cream);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:var(--sf);z-index:2}
+.hab-name{text-align:left;padding:5px 8px 5px 0;font-size:.75rem;color:var(--cream);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;position:sticky;left:0;background:rgba(22,15,12,0.95);z-index:2}
 .hab-dh{text-align:center;padding:2px 1px;font-size:.58rem;color:var(--muted);min-width:20px}
-.hab-wh{text-align:center;font-size:.6rem;color:var(--acc2);font-weight:600;padding:2px 3px;border-bottom:1px solid var(--bdr)}
+.hab-wh{text-align:center;font-size:.58rem;color:var(--sec2);font-weight:600;padding:2px 3px;border-bottom:1px solid rgba(255,255,255,0.08);letter-spacing:.07em;text-transform:uppercase}
 .hab-c{text-align:center;padding:2px 1px}
-.hck{width:18px;height:18px;border-radius:4px;border:1.5px solid rgba(108,99,255,.35);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;color:#0f0f14;font-weight:700;transition:all .15s}
-.hck.on{background:var(--acc);border-color:var(--acc)}
-.hck.fut{opacity:.2;cursor:default;pointer-events:none}
-.hab-prow td{font-size:.63rem;color:var(--gold2);font-weight:600;text-align:center;padding:3px 1px;border-top:1px solid var(--bdr)}
+.hck{width:18px;height:18px;border-radius:4px;border:1.5px solid rgba(255,255,255,0.20);background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;font-weight:700;transition:all .15s}
+.hck.on{background:var(--sec);border-color:var(--sec)}
+.hck.fut{opacity:.15;cursor:default;pointer-events:none}
+.hab-prow td{font-size:.63rem;color:var(--sec2);font-weight:600;text-align:center;padding:3px 1px;border-top:1px solid rgba(255,255,255,0.08)}
 .hab-prow .hab-name{color:var(--muted);font-size:.65rem}
-/* Analysis grid */
-.anl-grid{display:grid;grid-template-columns:1fr auto auto 1fr;gap:0;border-radius:8px;overflow:hidden;border:1px solid var(--bdr)}
-.anl-h{background:var(--s3);padding:5px 9px;font-size:.63rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);font-weight:600;border-bottom:1px solid var(--bdr)}
+
+/* ── Analysis grid ────────────────────────────────── */
+.anl-grid{display:grid;grid-template-columns:1fr auto auto 1fr;gap:0;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.10)}
+.anl-h{background:rgba(255,255,255,0.07);padding:5px 9px;font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--sec2);font-weight:600;border-bottom:1px solid rgba(255,255,255,0.08)}
 .anl-c{padding:6px 9px;font-size:.8rem;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center}
-.anl-bar-wrap{flex:1;background:var(--s3);border-radius:99px;height:5px;overflow:hidden}
-.anl-bar{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:99px;transition:width .4s}
+.anl-bar-wrap{flex:1;background:rgba(255,255,255,0.07);border-radius:99px;height:5px;overflow:hidden}
+.anl-bar{height:100%;background:linear-gradient(90deg,var(--sec),var(--sec2));border-radius:99px;transition:width .4s}
 .anl-bar.warn{background:linear-gradient(90deg,#f59e0b,#fcd34d)}
-.anl-bar.bad{background:linear-gradient(90deg,#c0392b,#e74c3c)}
-/* Budget planner */
+.anl-bar.bad{background:linear-gradient(90deg,#7B1D2E,#B5293C)}
+
+/* ── Budget planner ───────────────────────────────── */
 .bsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
-.bstat{background:var(--s3);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid var(--bdr)}
+.bstat{background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 6px;text-align:center;border:1px solid rgba(255,255,255,0.10)}
 .bnum{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-weight:600;line-height:1}
-.bnum.pos{color:var(--ok)}.bnum.neg{color:var(--danger)}.bnum.neu{color:var(--acc2)}
-.blbl{font-size:.58rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
-.bcat{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.bcat:last-child{border-bottom:none}
-.bcat-ico{font-size:1.05rem;flex-shrink:0;width:22px;text-align:center}
-.bcat-info{flex:1;min-width:0}
-.bcat-top{font-size:.84rem;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
-.bcat-sub{font-size:.67rem;color:var(--muted)}
-.bbar-w{height:4px;background:var(--s3);border-radius:99px;overflow:hidden;margin-top:4px}
+.bnum.pos{color:var(--ok)}.bnum.neg{color:var(--danger)}.bnum.neu{color:var(--sec2)}
+.blbl{font-size:.57rem;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+.bbar-w{height:4px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;margin-top:4px}
 .bbar{height:100%;border-radius:99px;transition:width .4s}
-.btx-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.83rem}
-.btx-row:last-child{border-bottom:none}
-.btx-ico{font-size:.95rem;flex-shrink:0}
-.btx-name{flex:1;font-size:.83rem}
-.btx-cat{font-size:.67rem;color:var(--muted)}
-.btx-amt{font-weight:600;flex-shrink:0}
 .btx-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem;opacity:.4;padding:0 3px}
 .btx-del:hover{opacity:1;color:var(--danger)}
 </style>
@@ -218,10 +421,10 @@ const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 const calcDay   = s => { const a=new Date(s); a.setHours(0,0,0,0); const b=new Date(); b.setHours(0,0,0,0); return Math.max(1,Math.floor((b-a)/86400000)+1); };
-const getMondayOf = d => { const dt=new Date(typeof d==='string'?d+'T12:00:00':d); const dow=dt.getDay(); dt.setDate(dt.getDate()-(dow===0?6:dow-1)); dt.setHours(0,0,0,0); return dt; };
-const calcWeek  = start => { const sm=getMondayOf(start); const tm=getMondayOf(new Date()); return Math.max(1,Math.floor((tm-sm)/604800000)+1); };
-const weekNumOf = (start,dateStr) => { const sm=getMondayOf(start); const dm=getMondayOf(dateStr); return Math.max(1,Math.floor((dm-sm)/604800000)+1); };
-const weekDays = (start,wk) => { const sm=getMondayOf(start); const mon=new Date(sm); mon.setDate(sm.getDate()+(wk-1)*7); return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return fmt(d); }); };
+const getSundayOf = d => { const dt=new Date(typeof d==='string'?d+'T12:00:00':d); const dow=dt.getDay(); dt.setDate(dt.getDate()-dow); dt.setHours(12,0,0,0); return dt; };
+const calcWeek  = start => { const sm=getSundayOf(start); const tm=getSundayOf(new Date()); return Math.max(1,Math.floor((tm-sm)/604800000)+1); };
+const weekNumOf = (start,dateStr) => { const sm=getSundayOf(start); const dm=getSundayOf(dateStr); return Math.max(1,Math.floor((dm-sm)/604800000)+1); };
+const weekDays = (start,wk) => { const sm=getSundayOf(start); const mon=new Date(sm); mon.setDate(sm.getDate()+(wk-1)*7); return Array.from({length:7},(_,i)=>{ const d=new Date(mon); d.setDate(mon.getDate()+i); return fmt(d); }); };
 const calcMonth = s => { const a=new Date(s+'T12:00:00'), b=new Date(); return Math.max(1,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth())+1); };
 const calcYear  = d => Math.max(1,Math.ceil(d/365));
 const isMeas    = t => /\b\d+\b|pages?|mins?|minutes?|hours?|times?|days?|chapters?|verses?|km|miles?|reps?|sessions?|books?|calls?|words?|percent|%/i.test(t);
@@ -233,19 +436,43 @@ const nearestSunToMonthEnd = (yr, mo) => {
   return fmt(d);
 };
 
+/* ─── Background themes ─── */
+const BG_THEMES = [
+  { id:'midnight', label:'Night',   bg:'#131823' },
+  { id:'western',  label:'Ember',   bg:'#1E110A' },
+  { id:'crimson',  label:'Crimson', bg:'#180808' },
+  { id:'alpine',   label:'Alpine',  bg:'#0D1518' },
+];
+
+/* ─── Section colors ─── */
+const SEC = {
+  daily:  '#B5293C',
+  goals:  '#9B2335',
+  habits: '#50A078',
+  budget: '#C4963A',
+  bible:  '#8880B0',
+  affirm: '#D4736B',
+  cal:    '#7A9E9F',
+  meet:   '#5A8CC8',
+};
+const SEC2 = {
+  daily:  '#D4736B',
+  goals:  '#B5293C',
+  habits: '#7AC8A0',
+  budget: '#E8C87A',
+  bible:  '#A89CCF',
+  affirm: '#EEC4BC',
+  cal:    '#9ABCBD',
+  meet:   '#82AADE',
+};
+
 /* ─── Supabase sync engine ─── */
 const Sync = (() => {
-  let _client = null;
-  let _status = 'offline';
-  let _listeners = [];
-  let _timer = null;
-  let _pending = {};
-
+  let _client = null, _status = 'offline', _listeners = [], _timer = null, _pending = {};
   const notify = s => { _status=s; _listeners.forEach(fn=>fn(s)); };
   const onStatus = fn => { _listeners.push(fn); return ()=>{ _listeners=_listeners.filter(f=>f!==fn); }; };
   const getStatus = () => _status;
   const isReady = () => !!_client;
-
   const SQL = `-- Run this once in Supabase > SQL Editor
 create table if not exists journey_data (
   key text primary key,
@@ -255,72 +482,45 @@ create table if not exists journey_data (
 alter table journey_data enable row level security;
 create policy "anon_all" on journey_data
   for all to anon using (true) with check (true);`;
-
   const loadSupabase = () => new Promise((resolve, reject) => {
     if(window.supabase) { resolve(); return; }
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-    s.onload = resolve;
-    s.onerror = reject;
+    s.onload = resolve; s.onerror = reject;
     document.head.appendChild(s);
   });
-
   const init = async (url, key) => {
-    try {
-      await loadSupabase();
-      _client = window.supabase.createClient(url, key);
-      notify('syncing');
-      await pullAll();
-      return true;
-    } catch(e) {
-      _client = null; notify('error'); return false;
-    }
+    try { await loadSupabase(); _client = window.supabase.createClient(url, key); notify('syncing'); await pullAll(); return true; }
+    catch(e) { _client = null; notify('error'); return false; }
   };
-
   const pullAll = async () => {
     if(!_client) return;
     try {
       notify('syncing');
       const {data, error} = await _client.from('journey_data').select('key,val');
       if(error) { notify('error'); return; }
-      (data||[]).forEach(row => {
-        try { localStorage.setItem('jny_'+row.key, row.val); } catch {}
-      });
+      (data||[]).forEach(row => { try { localStorage.setItem('jny_'+row.key, row.val); } catch {} });
       notify('synced');
     } catch { notify('error'); }
   };
-
   const scheduleUpsert = (key, val) => {
-    if(!_client) return;
-    _pending[key] = val;
-    clearTimeout(_timer);
-    _timer = setTimeout(flush, 1500);
+    if(!_client) return; _pending[key] = val;
+    clearTimeout(_timer); _timer = setTimeout(flush, 1500);
   };
-
   const flush = async () => {
     if(!_client || !Object.keys(_pending).length) return;
     const rows = Object.entries(_pending).map(([key,val])=>({key,val,updated_at:new Date().toISOString()}));
-    _pending = {};
-    notify('syncing');
-    try {
-      const {error} = await _client.from('journey_data').upsert(rows);
-      notify(error?'error':'synced');
-    } catch { notify('error'); }
+    _pending = {}; notify('syncing');
+    try { const {error} = await _client.from('journey_data').upsert(rows); notify(error?'error':'synced'); }
+    catch { notify('error'); }
   };
-
   return {init, pullAll, scheduleUpsert, onStatus, getStatus, isReady, SQL};
 })();
 
 /* ─── local storage DB ─── */
 const DB = {
-  get(k, fallback=null){
-    try { const r=localStorage.getItem('jny_'+k); return r!==null?JSON.parse(r):fallback; } catch { return fallback; }
-  },
-  set(k, v){
-    const s=JSON.stringify(v);
-    try { localStorage.setItem('jny_'+k, s); } catch {}
-    Sync.scheduleUpsert(k, s);
-  }
+  get(k, fallback=null){ try { const r=localStorage.getItem('jny_'+k); return r!==null?JSON.parse(r):fallback; } catch { return fallback; } },
+  set(k, v){ const s=JSON.stringify(v); try { localStorage.setItem('jny_'+k, s); } catch {} Sync.scheduleUpsert(k, s); }
 };
 
 /* ─── shared ui ─── */
@@ -350,122 +550,63 @@ function SyncModal({onClose, onSynced}){
   const [copied, setCopied] = useState(false);
   const [testing, setTesting] = useState(false);
   const [err, setErr] = useState('');
-
-  useEffect(()=>{
-    if(Sync.isReady()) setStep('done');
-    return Sync.onStatus(s=>setStatus(s));
-  },[]);
-
-  const copySQL = () => {
-    navigator.clipboard.writeText(Sync.SQL).then(()=>{
-      setCopied(true); setTimeout(()=>setCopied(false),2000);
-    }).catch(()=>{});
-  };
-
+  useEffect(()=>{ if(Sync.isReady()) setStep('done'); return Sync.onStatus(s=>setStatus(s)); },[]);
+  const copySQL = () => { navigator.clipboard.writeText(Sync.SQL).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); }).catch(()=>{}); };
   const connect = async () => {
     if(!url.trim()||!key.trim()){ setErr('Please fill in both fields.'); return; }
     setErr(''); setTesting(true);
     const ok = await Sync.init(url.trim(), key.trim());
     setTesting(false);
-    if(ok){
-      DB.set('sync_url', url.trim());
-      DB.set('sync_key', key.trim());
-      setStep('done');
-      onSynced && onSynced();
-    } else {
-      setErr('Could not connect. Check your URL and anon key, and make sure you ran the SQL.');
-    }
+    if(ok){ DB.set('sync_url', url.trim()); DB.set('sync_key', key.trim()); setStep('done'); onSynced && onSynced(); }
+    else { setErr('Could not connect. Check your URL and anon key, and make sure you ran the SQL.'); }
   };
-
-  const disconnect = () => {
-    localStorage.removeItem('jny_sync_url');
-    localStorage.removeItem('jny_sync_key');
-    window.location.reload();
-  };
-
-  const statusColor = {synced:'var(--ok)',syncing:'var(--gold)',error:'var(--danger)',offline:'var(--muted)'};
+  const disconnect = () => { localStorage.removeItem('jny_sync_url'); localStorage.removeItem('jny_sync_key'); window.location.reload(); };
+  const statusColor = {synced:'var(--ok)',syncing:'var(--gold-champ)',error:'var(--danger)',offline:'rgba(255,255,255,0.3)'};
   const statusText  = {synced:'Synced — data is live across devices',syncing:'Syncing…',error:'Sync error — check credentials',offline:'Not connected'};
-
   return(
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
         <div className="mtitle">☁ Sync Across Devices</div>
-
         {step==='done' ? (
           <>
             <div className={`sync-status-row ${status}`}>
-              <div className="syncdot" style={{background:statusColor[status],width:10,height:10,borderRadius:'50%',flexShrink:0}}/>
+              <div style={{width:10,height:10,borderRadius:'50%',background:statusColor[status],flexShrink:0}}/>
               <span style={{fontSize:'.83rem'}}>{statusText[status]}</span>
             </div>
-            <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:14}}>
-              Your data is syncing automatically. Open the same URL on any device and it will stay in sync.
-            </p>
+            <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:14}}>Your data is syncing automatically. Open the same URL on any device and it will stay in sync.</p>
             <div style={{display:'flex',gap:8}}>
               <button className="btn btng btnsm" onClick={()=>Sync.pullAll()} style={{flex:1}}>Force Pull</button>
-              <button className="btn btng btnsm" style={{flex:1,color:'var(--danger)',borderColor:'rgba(192,57,43,.3)'}} onClick={disconnect}>Disconnect</button>
+              <button className="btn btng btnsm" style={{flex:1,color:'var(--danger)',borderColor:'rgba(181,41,60,.3)'}} onClick={disconnect}>Disconnect</button>
             </div>
-            <div className="macts">
-              <button className="btn btnfull" onClick={onClose}>Close</button>
-            </div>
+            <div className="macts"><button className="btn btnfull" onClick={onClose}>Close</button></div>
           </>
         ) : (
           <>
-            <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:16}}>
-              Follow these steps to sync your Journey data across your phone and laptop for free. Takes about 5 minutes.
-            </p>
-
-            <div className="step">
-              <div className="step-num">1</div>
-              <div className="step-body">
-                <div className="step-title">Create a free Supabase account</div>
-                <div className="step-desc">Go to <strong style={{color:'var(--gold2)'}}>supabase.com</strong> and click "Start your project". Sign up with GitHub or email (it's free).</div>
-              </div>
-            </div>
-
-            <div className="step">
-              <div className="step-num">2</div>
-              <div className="step-body">
-                <div className="step-title">Create a new project</div>
-                <div className="step-desc">Click "New project". Give it any name (e.g. "journey"). Choose a region close to you. Set any database password. Wait ~2 minutes for it to start.</div>
-              </div>
-            </div>
-
-            <div className="step">
-              <div className="step-num">3</div>
-              <div className="step-body">
-                <div className="step-title">Run the setup SQL</div>
-                <div className="step-desc">In your Supabase project, click <strong style={{color:'var(--cream)'}}>SQL Editor</strong> in the left sidebar, then paste and run this:</div>
-                <div className={`code-box ${copied?'copied':''}`} onClick={copySQL}>
-                  {copied ? '✓ Copied!' : Sync.SQL}
+            <p style={{fontSize:'.83rem',color:'var(--muted)',lineHeight:1.6,marginBottom:16}}>Follow these steps to sync your Journey data across your phone and laptop for free. Takes about 5 minutes.</p>
+            {[
+              ['Create a free Supabase account','Go to supabase.com and click "Start your project". Sign up with GitHub or email (it\'s free).', null],
+              ['Create a new project','Click "New project". Give it any name. Choose a region close to you. Wait ~2 minutes for it to start.', null],
+              ['Run the setup SQL','In your Supabase project, click SQL Editor in the left sidebar, paste and run this:', Sync.SQL],
+              ['Get your Project URL and anon key','In Supabase, go to Settings → API. Copy your Project URL and your anon / public key.', null],
+            ].map(([title,desc,code],i)=>(
+              <div key={i} className="step">
+                <div className="step-num">{i+1}</div>
+                <div className="step-body">
+                  <div className="step-title">{title}</div>
+                  <div className="step-desc">{desc}</div>
+                  {code && <><div className={`code-box ${copied?'copied':''}`} onClick={copySQL}>{copied?'✓ Copied!':code}</div>
+                    {!copied && <div style={{fontSize:'.7rem',color:'var(--muted)',marginTop:4}}>Tap the box above to copy</div>}</>}
                 </div>
-                {!copied && <div style={{fontSize:'.7rem',color:'var(--muted)',marginTop:4}}>Tap the box above to copy</div>}
               </div>
-            </div>
-
-            <div className="step">
-              <div className="step-num">4</div>
-              <div className="step-body">
-                <div className="step-title">Get your Project URL and anon key</div>
-                <div className="step-desc">In Supabase, go to <strong style={{color:'var(--cream)'}}>Settings → API</strong>. Copy your <strong style={{color:'var(--cream)'}}>Project URL</strong> and your <strong style={{color:'var(--cream)'}}>anon / public</strong> key.</div>
-              </div>
-            </div>
-
+            ))}
             <div className="step">
               <div className="step-num">5</div>
               <div className="step-body">
                 <div className="step-title">Paste them below</div>
-                <div className="frow" style={{marginTop:6}}>
-                  <label className="flbl">Project URL</label>
-                  <input className="inp inp-sm" placeholder="https://xxxx.supabase.co" value={url} onChange={e=>setUrl(e.target.value)}/>
-                </div>
-                <div className="frow">
-                  <label className="flbl">Anon / Public Key</label>
-                  <input className="inp inp-sm" placeholder="eyJhbGci..." value={key} onChange={e=>setKey(e.target.value)}/>
-                </div>
+                <div className="frow" style={{marginTop:6}}><label className="flbl">Project URL</label><input className="inp inp-sm" placeholder="https://xxxx.supabase.co" value={url} onChange={e=>setUrl(e.target.value)}/></div>
+                <div className="frow"><label className="flbl">Anon / Public Key</label><input className="inp inp-sm" placeholder="eyJhbGci..." value={key} onChange={e=>setKey(e.target.value)}/></div>
                 {err && <div style={{fontSize:'.78rem',color:'var(--danger)',marginBottom:8}}>{err}</div>}
-                <button className="btn btnfull" onClick={connect} disabled={testing}>
-                  {testing ? 'Connecting…' : 'Connect & Sync'}
-                </button>
+                <button className="btn btnfull" onClick={connect} disabled={testing}>{testing?'Connecting…':'Connect & Sync'}</button>
               </div>
             </div>
           </>
@@ -481,31 +622,33 @@ function Setup({onDone}){
   return(
     <div className="setup">
       <div className="setup-t">Journey</div>
-      <p className="setup-s">Welcome. When did your journey begin? This sets your Day 1.</p>
+      <p className="setup-s">Welcome. When did your journey begin?<br/>This sets your Day&nbsp;1.</p>
       <div className="setup-f">
         <label className="flbl" style={{textAlign:'left'}}>Journey Start Date</label>
         <input className="inp" type="date" value={d} onChange={e=>setD(e.target.value)} max={todayStr()} style={{textAlign:'center'}}/>
-        <button className="btn btnfull" onClick={()=>d&&onDone(d)} disabled={!d}>Begin Journey →</button>
+        <button className="btn btnfull" style={{background:'var(--red-garnet)'}} onClick={()=>d&&onDone(d)} disabled={!d}>Begin Journey →</button>
       </div>
     </div>
   );
 }
 
 /* ─── Donut Ring ─── */
-function Donut({pct, size=88, thick=9, color='#6c63ff', bg='rgba(108,99,255,0.12)', label}){
+function Donut({pct, size=88, thick=9, color, bg, label}){
+  const c = color || 'var(--sec)';
+  const b = bg || 'rgba(255,255,255,0.08)';
   const r=(size-thick)/2, circ=2*Math.PI*r;
   const dash=Math.min(pct,100)/100*circ;
   return(
     <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
       <svg width={size} height={size} style={{transform:'rotate(-90deg)',display:'block'}}>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={bg} strokeWidth={thick}/>
-        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={thick}
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={b} strokeWidth={thick}/>
+        <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={c} strokeWidth={thick}
           strokeDasharray={dash+' '+circ} strokeLinecap="round"
           style={{transition:'stroke-dasharray .5s ease'}}/>
       </svg>
       <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:size>70?'1.05rem':'.75rem',fontWeight:700,color:pct>0?color:'var(--muted)',lineHeight:1}}>{Math.round(pct)}%</div>
-        {label&&<div style={{fontSize:'.55rem',color:'var(--muted)',marginTop:1}}>{label}</div>}
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:size>70?'1.05rem':'.75rem',fontWeight:700,color:pct>0?c:'var(--muted)',lineHeight:1}}>{Math.round(pct)}%</div>
+        {label&&<div style={{fontSize:'.55rem',color:'var(--muted)',marginTop:1,letterSpacing:'.06em',textTransform:'uppercase'}}>{label}</div>}
       </div>
     </div>
   );
@@ -517,6 +660,8 @@ function DailyDay({dateStr, start, isToday, wgoals}){
   const [inp, setInp]     = useState('');
   const [sel, setSel]     = useState('');
   const [adding, setAdding] = useState(false);
+  const color = isToday ? SEC.daily : '#3a2020';
+  const color2 = isToday ? SEC2.daily : '#5a3030';
 
   useEffect(()=>{ setTodos(DB.get('todos_'+dateStr,[])); },[dateStr]);
   const save=u=>{ setTodos(u); DB.set('todos_'+dateStr,u); };
@@ -530,39 +675,38 @@ function DailyDay({dateStr, start, isToday, wgoals}){
   const dayName=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'][dateObj.getDay()];
   const dateLabel=dateObj.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'.');
   const isFuture=dateStr>todayStr();
-  const accent=isToday?'#6c63ff':'#3a4080';
-  const accentBg=isToday?'rgba(108,99,255,0.15)':'rgba(58,64,128,0.15)';
 
   return(
     <div style={{
       minWidth:'82vw',maxWidth:340,flexShrink:0,
-      background:isToday?'#111630':'#0e1120',
-      border:'1px solid '+(isToday?'rgba(108,99,255,.4)':'rgba(58,64,128,.25)'),
-      borderRadius:14,overflow:'hidden',display:'flex',flexDirection:'column'
+      background:isToday?'rgba(181,41,60,0.08)':'rgba(255,255,255,0.04)',
+      border:'1px solid '+(isToday?'rgba(181,41,60,0.35)':'rgba(255,255,255,0.08)'),
+      borderRadius:14,overflow:'hidden',display:'flex',flexDirection:'column',
+      backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)',
     }}>
-      <div style={{background:isToday?'#6c63ff':'#1c2248',padding:'12px 14px 10px',textAlign:'center'}}>
-        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.15rem',fontWeight:700,color:'#fff',letterSpacing:'.04em'}}>{dayName}</div>
-        <div style={{fontSize:'.7rem',color:isToday?'rgba(255,255,255,.75)':'rgba(168,156,255,.7)',marginTop:2}}>{dateLabel}</div>
+      <div style={{background:isToday?SEC.daily:'rgba(255,255,255,0.06)',padding:'12px 14px 10px',textAlign:'center'}}>
+        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.1rem',fontWeight:700,color:'#fff',letterSpacing:'.12em',textTransform:'uppercase'}}>{dayName}</div>
+        <div style={{fontSize:'.68rem',color:isToday?'rgba(255,255,255,.75)':'rgba(255,255,255,.45)',marginTop:2,letterSpacing:'.06em'}}>{dateLabel}</div>
       </div>
-      <div style={{display:'flex',justifyContent:'center',padding:'16px 0 10px',background:isToday?'rgba(108,99,255,.05)':'transparent'}}>
-        <Donut pct={pct} size={90} thick={9} color={accent} bg={accentBg}/>
+      <div style={{display:'flex',justifyContent:'center',padding:'16px 0 10px'}}>
+        <Donut pct={pct} size={90} thick={9} color={color} bg={isToday?'rgba(181,41,60,0.15)':'rgba(255,255,255,0.06)'}/>
       </div>
-      <div style={{display:'flex',justifyContent:'center',gap:14,padding:'0 14px 10px',fontSize:'.68rem',color:'var(--muted)'}}>
+      <div style={{display:'flex',justifyContent:'center',gap:14,padding:'0 14px 10px',fontSize:'.67rem',color:'var(--muted)'}}>
         <span style={{color:'var(--ok)'}}>✓ {done} Done</span>
-        <span style={{color:'#ef5350'}}>✕ {todos.length-done} Left</span>
+        <span style={{color:SEC.daily}}>✕ {todos.length-done} Left</span>
       </div>
       <div style={{flex:1,padding:'0 12px 10px',overflowY:'auto',maxHeight:280}}>
-        <div style={{fontSize:'.65rem',fontWeight:700,letterSpacing:'.1em',color:isToday?'var(--acc2)':'var(--muted)',marginBottom:8,textTransform:'uppercase'}}>Tasks</div>
+        <div style={{fontSize:'.6rem',fontWeight:700,letterSpacing:'.12em',color:isToday?SEC2.daily:'rgba(255,255,255,0.35)',marginBottom:8,textTransform:'uppercase'}}>Tasks</div>
         {todos.length===0&&!isFuture&&(
           <div style={{fontSize:'.75rem',color:'var(--muted)',textAlign:'center',padding:'8px 0'}}>No tasks — tap + to add</div>
         )}
         {todos.map(t=>{
           const lg=wgoals.find(g=>g.id===t.wgid);
           return(
-            <div key={t.id} style={{display:'flex',gap:8,alignItems:'flex-start',padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
+            <div key={t.id} style={{display:'flex',gap:8,alignItems:'flex-start',padding:'5px 0',borderBottom:'1px solid rgba(255,255,255,.05)'}}>
               <button
-                style={{width:16,height:16,borderRadius:3,border:'1.5px solid '+(t.done?accent:'rgba(108,99,255,.4)'),
-                  background:t.done?accent:'none',cursor:'pointer',display:'flex',alignItems:'center',
+                style={{width:16,height:16,borderRadius:3,border:'1.5px solid '+(t.done?color:'rgba(255,255,255,0.25)'),
+                  background:t.done?color:'none',cursor:'pointer',display:'flex',alignItems:'center',
                   justifyContent:'center',flexShrink:0,marginTop:1}}
                 onClick={()=>toggle(t.id)}>
                 {t.done&&<span style={{color:'#fff',fontSize:'.55rem',fontWeight:700}}>✓</span>}
@@ -570,7 +714,7 @@ function DailyDay({dateStr, start, isToday, wgoals}){
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontSize:'.78rem',lineHeight:1.35,textDecoration:t.done?'line-through':'none',
                   color:t.done?'var(--muted)':'var(--cream)'}}>{t.text}</div>
-                {lg&&<div style={{fontSize:'.6rem',color:'var(--acc2)',marginTop:1}}>↳ {lg.text.slice(0,22)+(lg.text.length>22?'…':'')}</div>}
+                {lg&&<div style={{fontSize:'.6rem',color:color2,marginTop:1}}>↳ {lg.text.slice(0,22)+(lg.text.length>22?'…':'')}</div>}
               </div>
               <button onClick={()=>del(t.id)} style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:'.8rem',opacity:.5,lineHeight:1}}>✕</button>
             </div>
@@ -581,7 +725,7 @@ function DailyDay({dateStr, start, isToday, wgoals}){
             <div style={{display:'flex',gap:6}}>
               <input autoFocus className="inp inp-sm" style={{flex:1,fontSize:'.78rem',padding:'6px 9px'}}
                 placeholder="Task…" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
-              <button className="btn btnsm" onClick={add} style={{padding:'6px 10px'}}>+</button>
+              <button style={{background:color,color:'#fff',border:'none',borderRadius:7,padding:'6px 10px',cursor:'pointer',fontWeight:600,fontSize:'.78rem'}} onClick={add}>+</button>
             </div>
             {wgoals.length>0&&inp.trim()&&(
               <select className="inp inp-sm" value={sel} onChange={e=>setSel(e.target.value)} style={{width:'100%',marginTop:5,fontSize:'.72rem'}}>
@@ -592,15 +736,15 @@ function DailyDay({dateStr, start, isToday, wgoals}){
           </div>
         ):!isFuture&&(
           <button onClick={()=>setAdding(true)}
-            style={{marginTop:8,width:'100%',background:'rgba(108,99,255,.1)',border:'1px dashed rgba(108,99,255,.3)',
-              borderRadius:7,padding:'6px',color:'var(--acc2)',fontSize:'.75rem',cursor:'pointer'}}>
+            style={{marginTop:8,width:'100%',background:'rgba(181,41,60,0.08)',border:'1px dashed rgba(181,41,60,0.28)',
+              borderRadius:7,padding:'6px',color:color2,fontSize:'.75rem',cursor:'pointer',letterSpacing:'.05em'}}>
             + Add Task
           </button>
         )}
       </div>
-      <div style={{borderTop:'1px solid rgba(255,255,255,.05)',display:'flex',fontSize:'.65rem',color:'var(--muted)'}}>
-        <div style={{flex:1,padding:'6px 12px',textAlign:'center'}}>Completed<br/><span style={{color:'var(--ok)',fontWeight:600}}>{done}</span></div>
-        <div style={{flex:1,padding:'6px 12px',textAlign:'center',borderLeft:'1px solid rgba(255,255,255,.05)'}}>Not Done<br/><span style={{color:'#ef5350',fontWeight:600}}>{todos.length-done}</span></div>
+      <div style={{borderTop:'1px solid rgba(255,255,255,.06)',display:'flex',fontSize:'.65rem',color:'var(--muted)'}}>
+        <div style={{flex:1,padding:'6px 12px',textAlign:'center',letterSpacing:'.05em',textTransform:'uppercase'}}>Done<br/><span style={{color:'var(--ok)',fontWeight:600}}>{done}</span></div>
+        <div style={{flex:1,padding:'6px 12px',textAlign:'center',borderLeft:'1px solid rgba(255,255,255,.06)',letterSpacing:'.05em',textTransform:'uppercase'}}>Left<br/><span style={{color:SEC.daily,fontWeight:600}}>{todos.length-done}</span></div>
       </div>
     </div>
   );
@@ -609,8 +753,7 @@ function DailyDay({dateStr, start, isToday, wgoals}){
 function DailyTab({dn,wn,mn,yn,start}){
   const now=new Date();
   const dow=now.getDay();
-  const mondayOffset=dow===0?-6:1-dow;
-  const weekStart=new Date(now); weekStart.setDate(now.getDate()+mondayOffset); weekStart.setHours(12,0,0,0);
+  const weekStart=new Date(now); weekStart.setDate(now.getDate()-dow); weekStart.setHours(12,0,0,0);
   const [weekOffset,setWeekOffset]=useState(0);
   const [wgoals,setWgoals]=useState([]);
   const scrollRef=useRef();
@@ -625,31 +768,24 @@ function DailyTab({dn,wn,mn,yn,start}){
     return s.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' – '+e.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
   };
 
-  useEffect(()=>{
-    const wk=weekNumOf(start,days[0]);
-    setWgoals(DB.get('wgoals_'+wk,[]));
-  },[weekOffset,start]);
-
+  useEffect(()=>{ const wk=weekNumOf(start,days[0]); setWgoals(DB.get('wgoals_'+wk,[])); },[weekOffset,start]);
   useEffect(()=>{
     if(scrollRef.current&&weekOffset===0){
       const todayIdx=days.indexOf(todayStr());
-      if(todayIdx>=0){
-        const el=scrollRef.current.children[todayIdx];
-        if(el) el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
-      }
+      if(todayIdx>=0){ const el=scrollRef.current.children[todayIdx]; if(el) el.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'}); }
     }
   },[]);
 
   return(
     <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
       <div style={{display:'flex',gap:8,padding:'12px 14px 8px',flexShrink:0}}>
-        {[['Day',dn],['Week',wn],['Month',mn],['Year',yn]].map(([l,v])=>(
-          <div key={l} className="dstat"><div className="dsnum">{v}</div><div className="dslbl">{l}</div></div>
+        {[['Day',dn,'Day'],['Week',wn,'Wk'],['Month',mn,'Mo'],['Year',yn,'Yr']].map(([l,v,s])=>(
+          <div key={l} className="dstat"><div className="dsnum">{v}</div><div className="dslbl">{s}</div></div>
         ))}
       </div>
       <div style={{display:'flex',alignItems:'center',padding:'0 14px 10px',gap:10,flexShrink:0}}>
         <button className="dnbtn" onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
-        <div className="dlbl" style={{fontSize:'.8rem'}}>{weekLabel()}</div>
+        <div className="dlbl" style={{fontSize:'.78rem',letterSpacing:'.06em'}}>{weekLabel()}</div>
         <button className="dnbtn" onClick={()=>setWeekOffset(w=>w+1)} disabled={weekOffset>=1} style={{opacity:weekOffset>=1?.35:1}}>›</button>
       </div>
       <div ref={scrollRef}
@@ -669,11 +805,11 @@ function DailyTab({dn,wn,mn,yn,start}){
 function GoalsTab({dn,wn,mn,yn,start}){
   const [sub,setSub]=useState('weekly');
   const now=new Date(), isSun=now.getDay()===0, todayS=todayStr();
-  const planWk=isSun?wn+1:wn, wFull=isSun, wLabel=isSun?`Plan Week ${planWk}`:`Week ${wn}`;
+  const planWk=isSun?wn+1:wn, wLabel=isSun?`Plan Week ${planWk}`:`Week ${wn}`;
   const planSun=nearestSunToMonthEnd(now.getFullYear(),now.getMonth());
   const mFull=isSun&&todayS===planSun, planMn=mFull?mn+1:mn, mLabel=mFull?`Plan Month ${planMn}`:`Month ${mn}`;
   const planSunLbl=new Date(planSun+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long'});
-  const dyInYr=((dn-1)%365)+1, yFull=dyInYr<=7, yLabel=yFull?`Plan Year ${yn}`:`Year ${yn}`;
+  const dyInYr=((dn-1)%365)+1, yFull=dyInYr<=7, yn2=calcYear(dn), yLabel=yFull?`Plan Year ${yn2}`:`Year ${yn2}`;
   return(
     <div className="sec">
       <div className="stabs">
@@ -681,14 +817,14 @@ function GoalsTab({dn,wn,mn,yn,start}){
         <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>{mLabel}</button>
         <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>{yLabel}</button>
       </div>
-      {sub==='weekly'&&<GoalList skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={wFull} isplan={isSun}
-        note={wFull?`Sunday planning — set your goals for Week ${planWk}.`:`Planning opens every Sunday. Full editing resumes then.`}
+      {sub==='weekly'&&<GoalList skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={isSun} isplan={isSun}
+        note={isSun?`Sunday planning — set your goals for Week ${planWk}.`:`Planning opens every Sunday. Full editing resumes then.`}
         type="week" period={planWk} start={start}/>}
       {sub==='monthly'&&<GoalList skey={'mgoals_'+planMn} label={`Month ${planMn}`} full={mFull} isplan={mFull}
         note={mFull?`Monthly planning day! Set goals for Month ${planMn}.`:`Monthly planning opens on the nearest Sunday to month-end — next is ${planSunLbl}.`}
         type="none"/>}
-      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn} label={`Year ${yn}`} full={yFull} isplan={yFull}
-        note={yFull?`New year of the journey! Set your vision for Year ${yn}.`:`Full yearly planning opens at the start of each journey year.`}
+      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn2} label={`Year ${yn2}`} full={yFull} isplan={yFull}
+        note={yFull?`New year of the journey! Set your vision for Year ${yn2}.`:`Full yearly planning opens at the start of each journey year.`}
         type="none"/>}
     </div>
   );
@@ -708,7 +844,8 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
   const add=()=>{ if(!inp.trim()) return; save([...goals,{id:genId(),text:inp.trim(),measurable:isMeas(inp),done:false}]); setInp(''); };
   const toggle=id=>save(goals.map(g=>g.id===id?{...g,done:!g.done}:g));
   const del=id=>{ if(full) save(goals.filter(g=>g.id!==id)); };
-  let tpct=0,mc=0; goals.forEach(g=>{ if(!g.measurable) return; mc++; const lk=linked[g.id]; if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100; else if(g.done) tpct+=100; });
+  let tpct=0,mc=0;
+  goals.forEach(g=>{ if(!g.measurable) return; mc++; const lk=linked[g.id]; if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100; else if(g.done) tpct+=100; });
   const nm=goals.filter(g=>!g.measurable),nmd=nm.filter(g=>g.done).length;
   const ovr=goals.length===0?0:mc>0?(tpct/mc+(nm.length>0?(nmd/nm.length)*100:0))/(mc>0&&nm.length>0?2:1):nm.length>0?(nmd/nm.length)*100:0;
   return(
@@ -716,7 +853,7 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
       <div className={'pbanner '+(isplan?'plan':'lock')}>
         <span className="pb-ico">{isplan?'📋':'🔒'}</span>
         <div>
-          <div className={'pb-hd '+(isplan?'gld':'mu')}>{isplan?'Planning Day':'Mid-period — Light edits only'}</div>
+          <div className={'pb-hd '+(isplan?'gld':'mu')}>{isplan?'Planning Day':'Mid-period — Light Edits Only'}</div>
           <div className="pb-bd">{note}</div>
         </div>
       </div>
@@ -727,13 +864,13 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
         {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
           <div key={g.id} className="gitem">
             {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
-              {g.done&&<span style={{color:'#0f0f14',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
+              {g.done&&<span style={{color:'#fff',fontSize:'.68rem',fontWeight:700}}>✓</span>}</button>}
             {g.measurable&&<div style={{width:20,flexShrink:0}}/>}
             <div style={{flex:1}}>
               <div style={{fontSize:'.88rem',lineHeight:1.4,textDecoration:g.done&&!g.measurable?'line-through':'none',color:g.done&&!g.measurable?'var(--muted)':'var(--cream)'}}>{g.text}</div>
               <div style={{display:'flex',gap:5,marginTop:3,flexWrap:'wrap',alignItems:'center'}}>
                 <span className={'mbdg '+(g.measurable?'y':'n')}>{g.measurable?'◉ measurable':'◌ not measurable'}</span>
-                {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--acc2)'}}>{lk.done}/{lk.tot} tasks done</span>}
+                {g.measurable&&lk&&lk.tot>0&&<span style={{fontSize:'.66rem',color:'var(--sec2)'}}>{lk.done}/{lk.tot} tasks done</span>}
               </div>
               {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
             </div>
@@ -743,7 +880,7 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
           <input className="inp" placeholder={full?'Add a goal…':'Add a goal (light edit)…'} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           <button className="btn" onClick={add}>+</button>
         </div>
-        {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'Measurable — progress tracked':'Not measurable — tick manually'}</div>}
+        {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'◉ Measurable — progress tracked':'◌ Not measurable — tick manually'}</div>}
       </div>
     </div>
   );
@@ -816,7 +953,6 @@ function CalTab(){
   const [events,setEvents]=useState([]);
   const [modal,setModal]=useState(false);
   const [form,setForm]=useState({title:'',st:'',et:'',type:'event',rec:'none'});
-
   useEffect(()=>{
     let evs=DB.get('calevents',[]);
     if(!evs.some(e=>e.id==='keith_weekly')){
@@ -825,7 +961,6 @@ function CalTab(){
     }
     setEvents(evs);
   },[]);
-
   const saveEvs=e=>{ setEvents(e); DB.set('calevents',e); };
   const evOn=dk=>events.filter(e=>e.rec==='sun'?new Date(dk+'T12:00:00').getDay()===0:e.dk===dk);
   const first=new Date(yr,mo,1).getDay(),last=new Date(yr,mo+1,0).getDate(),prev=new Date(yr,mo,0).getDate();
@@ -862,8 +997,8 @@ function CalTab(){
             <div className="evtime">{ev.st||'—'}{ev.et&&<><br/><span style={{opacity:.6}}>{ev.et}</span></>}</div>
             <div style={{flex:1}}>
               <div className="evtit">{ev.title}</div>
-              {ev.rec==='sun'&&<div style={{fontSize:'.66rem',color:'var(--acc2)',marginTop:2}}>↻ Weekly (Sundays)</div>}
-              {ev.type==='deadline'&&<div style={{fontSize:'.66rem',color:'#e74c3c',marginTop:2}}>⚑ Deadline</div>}
+              {ev.rec==='sun'&&<div style={{fontSize:'.66rem',color:'var(--sec2)',marginTop:2}}>↻ Weekly (Sundays)</div>}
+              {ev.type==='deadline'&&<div style={{fontSize:'.66rem',color:'var(--danger)',marginTop:2}}>⚑ Deadline</div>}
             </div>
             <button className="evdel" onClick={()=>saveEvs(events.filter(e=>e.id!==ev.id))}>✕</button>
           </div>))}
@@ -907,7 +1042,7 @@ function MeetTab({wn}){
     <div className="sec">
       <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:13}}>
         <button className="dnbtn" onClick={()=>setVw(w=>Math.max(1,w-1))}>‹</button>
-        <div style={{flex:1,textAlign:'center',fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--acc2)'}}>Week {vw} {vw===wn?'(Current)':''}</div>
+        <div style={{flex:1,textAlign:'center',fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--sec2)',letterSpacing:'.1em',textTransform:'uppercase'}}>Week {vw} {vw===wn?'(Current)':''}</div>
         <button className="dnbtn" onClick={()=>setVw(w=>Math.min(wn,w+1))} disabled={vw>=wn} style={{opacity:vw>=wn?.35:1}}>›</button>
       </div>
       <div className="card">
@@ -917,12 +1052,12 @@ function MeetTab({wn}){
             <div className="swlbl" style={{color:'var(--ok)'}}>💪 Strengths</div>
             <textarea className="swinp" placeholder="What went well?" value={data.str} onChange={e=>f('str',e.target.value)}/>
           </div>
-          <div className="swcard" style={{borderTop:'2px solid #e74c3c'}}>
-            <div className="swlbl" style={{color:'#e74c3c'}}>⚡ Weaknesses</div>
+          <div className="swcard" style={{borderTop:'2px solid var(--danger)'}}>
+            <div className="swlbl" style={{color:'var(--danger)'}}>⚡ Weaknesses</div>
             <textarea className="swinp" placeholder="Where did you fall short?" value={data.weak} onChange={e=>f('weak',e.target.value)}/>
           </div>
         </div>
-        <div className="swcard" style={{marginBottom:9,borderLeft:'2px solid var(--acc2)'}}>
+        <div className="swcard" style={{marginBottom:9,borderLeft:'2px solid var(--sec2)'}}>
           <div className="swlbl">🎯 Areas to Improve</div>
           <textarea className="swinp" placeholder="What will you focus on next week?" value={data.imp} onChange={e=>f('imp',e.target.value)} style={{minHeight:65}}/>
         </div>
@@ -972,14 +1107,8 @@ function HabitsTab(){
     saveChecks(nc);
   };
 
-  const addHabit=()=>{
-    if(!newHab.trim()) return;
-    saveHabits([...habits,{id:genId(),text:newHab.trim()}]);
-    setNewHab(''); setShowAdd(false);
-  };
-
+  const addHabit=()=>{ if(!newHab.trim()) return; saveHabits([...habits,{id:genId(),text:newHab.trim()}]); setNewHab(''); setShowAdd(false); };
   const delHabit=id=>saveHabits(habits.filter(h=>h.id!==id));
-
   const navMo=dir=>{ let m=mo+dir,y=yr; if(m<0){m=11;y--;}if(m>11){m=0;y++;} setMo(m);setYr(y); };
 
   const weeks=[];
@@ -1014,7 +1143,6 @@ function HabitsTab(){
           <button className="dnbtn" onClick={()=>navMo(1)} disabled={yr===now.getFullYear()&&mo===now.getMonth()} style={{opacity:yr===now.getFullYear()&&mo===now.getMonth()?.35:1}}>›</button>
         </div>
       </div>
-
       <div className="card" style={{padding:'12px 0 8px'}}>
         <div style={{padding:'0 14px 8px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div className="ctitle" style={{marginBottom:0}}>☑ Habit Tracker</div>
@@ -1031,15 +1159,15 @@ function HabitsTab(){
           <table className="hab-tbl">
             <thead>
               <tr>
-                <th className="hab-name" style={{fontSize:'.62rem',color:'var(--muted)',fontWeight:600,paddingBottom:2}}>My Habits</th>
-                {weeks.map(({wk,days})=><th key={wk} className="hab-wh" colSpan={days.length}>Week {wk}</th>)}
+                <th className="hab-name" style={{fontSize:'.58rem',color:'var(--muted)',fontWeight:600,paddingBottom:2,letterSpacing:'.08em',textTransform:'uppercase'}}>My Habits</th>
+                {weeks.map(({wk,days})=><th key={wk} className="hab-wh" colSpan={days.length}>Wk {wk}</th>)}
               </tr>
               <tr>
                 <th className="hab-name" style={{paddingTop:2}}></th>
                 {weeks.flatMap(({days})=>days.map(d=>(
                   <th key={d} className="hab-dh">
-                    <div style={{color:d===todayD?'var(--gold)':'',fontWeight:d===todayD?700:400}}>{d}</div>
-                    <div style={{fontSize:'.52rem',opacity:.6}}>{dayName(d)}</div>
+                    <div style={{color:d===todayD?SEC.habits:'',fontWeight:d===todayD?700:400}}>{d}</div>
+                    <div style={{fontSize:'.48rem',opacity:.6}}>{dayName(d)}</div>
                   </th>
                 )))}
               </tr>
@@ -1048,7 +1176,7 @@ function HabitsTab(){
               {habits.map(h=>(
                 <tr key={h.id}>
                   <td className="hab-name">
-                    <span style={{cursor:'pointer'}} onClick={()=>delHabit(h.id)} title="tap to remove">✕ </span>
+                    <span style={{cursor:'pointer',opacity:.5}} onClick={()=>delHabit(h.id)} title="tap to remove">✕ </span>
                     {h.text}
                   </td>
                   {weeks.flatMap(({days})=>days.map(d=>(
@@ -1064,7 +1192,9 @@ function HabitsTab(){
               <tr className="hab-prow">
                 <td className="hab-name">Progress</td>
                 {weeks.map(({wk,days},wi)=>(
-                  <td key={wk} colSpan={days.length} style={{textAlign:'center',fontSize:'.65rem',color:wkPcts[wi]!==null?(wkPcts[wi]>=80?'var(--ok)':wkPcts[wi]>=50?'var(--gold2)':'var(--danger)'):'var(--muted)',fontWeight:600,paddingTop:4,borderTop:'1px solid var(--bdr)'}}>
+                  <td key={wk} colSpan={days.length} style={{textAlign:'center',fontSize:'.65rem',
+                    color:wkPcts[wi]!==null?(wkPcts[wi]>=80?'var(--ok)':wkPcts[wi]>=50?SEC2.habits:'var(--danger)'):'var(--muted)',
+                    fontWeight:600,paddingTop:4,borderTop:'1px solid rgba(255,255,255,0.08)'}}>
                     {wkPcts[wi]!==null?wkPcts[wi]+'%':'—'}
                   </td>
                 ))}
@@ -1073,7 +1203,6 @@ function HabitsTab(){
           </table>
         </div>
       </div>
-
       <div className="card">
         <div className="ctitle">Analysis</div>
         <div className="anl-grid">
@@ -1096,39 +1225,37 @@ function HabitsTab(){
             </React.Fragment>);
           })}
         </div>
-        <div style={{marginTop:12,display:'flex',alignItems:'center',gap:10,background:'var(--s3)',borderRadius:8,padding:'10px 12px'}}>
+        <div style={{marginTop:12,display:'flex',alignItems:'center',gap:10,background:'rgba(255,255,255,0.05)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(255,255,255,0.08)'}}>
           <div style={{flex:1}}>
-            <div style={{fontSize:'.72rem',color:'var(--muted)',marginBottom:4}}>Overall Month Progress</div>
+            <div style={{fontSize:'.68rem',color:'var(--muted)',marginBottom:4,letterSpacing:'.08em',textTransform:'uppercase'}}>Overall Month Progress</div>
             <div className="anl-bar-wrap" style={{height:7}}><div className="anl-bar" style={{width:monthPct+'%'}}/></div>
           </div>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem',color:'var(--acc2)',fontWeight:600}}>{monthPct}%</div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.4rem',color:'var(--sec2)',fontWeight:600}}>{monthPct}%</div>
         </div>
       </div>
     </div>
   );
 }
 
-/* ─── Budget Planner ─── */
-// FIX: Single BUD_CATS definition (removed duplicate)
+/* ─── Budget ─── */
 const BUD_CATS = [
   {id:'housing',    name:'Home',                ico:'🏠', color:'#5b8dee'},
   {id:'dailyliving',name:'Daily Living',        ico:'🛍️', color:'#f0a500'},
   {id:'dues',       name:'Dues',                ico:'📋', color:'#20c997'},
-  {id:'subs',       name:'Subscriptions',       ico:'📱', color:'#a855f7'},
-  {id:'debts',      name:'Debts',               ico:'💳', color:'#ef5350'},
-  {id:'personal',   name:'Personal Expenditure',ico:'👤', color:'#e83e8c'},
-  {id:'investment', name:'Investment',          ico:'📈', color:'#27ae60'},
-  {id:'savings',    name:'Savings',             ico:'💰', color:'#4caf50'},
-  {id:'misc',       name:'Misc Payments',       ico:'📌', color:'#7a7a9a'},
-  {id:'transport',  name:'Transportation',      ico:'🚗', color:'#fd7e14'},
-  {id:'groceries',  name:'Groceries',           ico:'🛒', color:'#f59e0b'},
-  {id:'care',       name:'Personal Care',       ico:'🧴', color:'#9b59b6'},
+  {id:'subs',       name:'Subscriptions',       ico:'📱', color:'#8880B0'},
+  {id:'debts',      name:'Debts',               ico:'💳', color:'#B5293C'},
+  {id:'personal',   name:'Personal',            ico:'👤', color:'#D4736B'},
+  {id:'investment', name:'Investment',          ico:'📈', color:'#50A078'},
+  {id:'savings',    name:'Savings',             ico:'💰', color:'#7AC8A0'},
+  {id:'misc',       name:'Misc',                ico:'📌', color:'#9C8A82'},
+  {id:'transport',  name:'Transport',           ico:'🚗', color:'#C4963A'},
+  {id:'groceries',  name:'Groceries',           ico:'🛒', color:'#E8C87A'},
+  {id:'care',       name:'Personal Care',       ico:'🧴', color:'#7A9E9F'},
 ];
-
 const MONTH_NAMES=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const FULL_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-function SmallDonut({pct,color='#6c63ff',size=56}){
+function SmallDonut({pct,color='#C4963A',size=56}){
   const thick=6,r=(size-thick)/2,circ=2*Math.PI*r,dash=Math.min(pct,100)/100*circ;
   return(
     <div style={{position:'relative',width:size,height:size,flexShrink:0}}>
@@ -1156,20 +1283,16 @@ function BudgetTab(){
   const [form,setForm]=useState({desc:'',amount:'',catId:'groceries',type:'expense',date:todayStr()});
   const [showForm,setShowForm]=useState(false);
   const [savingGoal,setSavingGoal]=useState('');
-
   const moKey=yr+'-'+String(mo+1).padStart(2,'0');
-
   useEffect(()=>{
     setBudgets(DB.get('bud_budgets_'+moKey,{}));
     setIncome(DB.get('bud_income_'+moKey,{salary:'',other:'',other2:''}));
     setTxs(DB.get('bud_txs_'+moKey,[]));
     setSavingGoal(DB.get('bud_saving_goal',''));
   },[moKey]);
-
   const saveBudgets=b=>{setBudgets(b);DB.set('bud_budgets_'+moKey,b);};
   const saveIncome=v=>{setIncome(v);DB.set('bud_income_'+moKey,v);};
   const saveTxs=t=>{setTxs(t);DB.set('bud_txs_'+moKey,t);};
-
   const navMo=dir=>{let m=mo+dir,y=yr;if(m<0){m=11;y--;}if(m>11){m=0;y++;}setMo(m);setYr(y);};
   const totalIncome=(parseFloat(income.salary)||0)+(parseFloat(income.other)||0)+(parseFloat(income.other2)||0);
   const expenseTxs=txs.filter(t=>t.type==='expense');
@@ -1181,29 +1304,15 @@ function BudgetTab(){
   const overallPct=totalBudgeted>0?Math.min(100,(totalSpent/totalBudgeted)*100):0;
   const fp=n=>`£${(parseFloat(n)||0).toFixed(2)}`;
   const f2=n=>n<0?`-£${Math.abs(n).toFixed(2)}`:`£${n.toFixed(2)}`;
-
   const addTx=()=>{
     if(!form.desc.trim()||!form.amount) return;
     saveTxs([{id:genId(),...form,amount:parseFloat(form.amount)},...txs]);
     setForm({desc:'',amount:'',catId:'groceries',type:'expense',date:todayStr()});
     setShowForm(false);
   };
-
-  const getMonthSpent=m=>{
-    const mk=yr+'-'+String(m+1).padStart(2,'0');
-    const t=DB.get('bud_txs_'+mk,[]);
-    return t.filter(x=>x.type==='expense').reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
-  };
-  const getMonthIncome=m=>{
-    const mk=yr+'-'+String(m+1).padStart(2,'0');
-    const inc=DB.get('bud_income_'+mk,{salary:'',other:'',other2:''});
-    return (parseFloat(inc.salary)||0)+(parseFloat(inc.other)||0)+(parseFloat(inc.other2)||0);
-  };
-  const getMonthCatSpent=(m,cid)=>{
-    const mk=yr+'-'+String(m+1).padStart(2,'0');
-    const t=DB.get('bud_txs_'+mk,[]);
-    return t.filter(x=>x.type==='expense'&&x.catId===cid).reduce((s,x)=>s+(parseFloat(x.amount)||0),0);
-  };
+  const getMonthSpent=m=>{ const mk=yr+'-'+String(m+1).padStart(2,'0'); return DB.get('bud_txs_'+mk,[]).filter(x=>x.type==='expense').reduce((s,x)=>s+(parseFloat(x.amount)||0),0); };
+  const getMonthIncome=m=>{ const mk=yr+'-'+String(m+1).padStart(2,'0'); const inc=DB.get('bud_income_'+mk,{salary:'',other:'',other2:''}); return (parseFloat(inc.salary)||0)+(parseFloat(inc.other)||0)+(parseFloat(inc.other2)||0); };
+  const getMonthCatSpent=(m,cid)=>{ const mk=yr+'-'+String(m+1).padStart(2,'0'); return DB.get('bud_txs_'+mk,[]).filter(x=>x.type==='expense'&&x.catId===cid).reduce((s,x)=>s+(parseFloat(x.amount)||0),0); };
 
   return(
     <div className="sec">
@@ -1214,32 +1323,30 @@ function BudgetTab(){
           <button className="dnbtn" onClick={()=>navMo(1)}>›</button>
         </div>
       </div>
-
       <div className="stabs">
-        {[['overview','Overview'],['monthly','Monthly'],['annual','Annual Plan'],['income','Income & Budgets'],['transactions','Transactions']].map(([id,lbl])=>(
+        {[['overview','Overview'],['monthly','Monthly'],['annual','Annual'],['income','Income'],['transactions','Transactions']].map(([id,lbl])=>(
           <button key={id} className={'stab'+(sub===id?' on':'')} onClick={()=>setSub(id)}>{lbl}</button>
         ))}
       </div>
 
       {sub==='overview'&&(
         <>
-          <div className="bsum" style={{gridTemplateColumns:'1fr 1fr 1fr',marginBottom:12}}>
+          <div className="bsum">
             <div className="bstat"><div className="bnum neu">{fp(totalIncome)}</div><div className="blbl">Income</div></div>
             <div className="bstat"><div className="bnum neg">{fp(totalSpent)}</div><div className="blbl">Spent</div></div>
             <div className="bstat"><div className={`bnum ${savings>=0?'pos':'neg'}`}>{f2(savings)}</div><div className="blbl">Left</div></div>
           </div>
-
           <div className="card">
             <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:12}}>
-              <Donut pct={overallPct} size={80} thick={8} color={overallPct>90?'#ef5350':overallPct>75?'#f59e0b':'#6c63ff'} label="budget"/>
+              <Donut pct={overallPct} size={80} thick={8} color={overallPct>90?SEC.daily:overallPct>75?SEC.budget:SEC.budget} label="budget"/>
               <div style={{flex:1}}>
-                <div style={{fontSize:'.85rem',fontWeight:600,marginBottom:4}}>Budget Overview</div>
-                <div style={{fontSize:'.75rem',color:'var(--muted)',marginBottom:8}}>{fp(totalSpent)} spent of {fp(totalBudgeted)} budgeted</div>
+                <div style={{fontSize:'.82rem',fontWeight:600,marginBottom:4,letterSpacing:'.04em'}}>Budget Overview</div>
+                <div style={{fontSize:'.72rem',color:'var(--muted)',marginBottom:8}}>{fp(totalSpent)} spent of {fp(totalBudgeted)} budgeted</div>
                 {savGoalNum>0&&(
                   <div>
-                    <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:3}}>Saving Goal: {fp(savGoalNum)}</div>
+                    <div style={{fontSize:'.68rem',color:'var(--muted)',marginBottom:3}}>Saving Goal: {fp(savGoalNum)}</div>
                     <div className="pwrap"><div className="pbar" style={{width:Math.min(100,(savings/savGoalNum)*100)+'%'}}/></div>
-                    <div style={{fontSize:'.7rem',color:'var(--ok)',marginTop:2}}>{fp(Math.max(0,savings))} saved ({Math.round(Math.min(100,(savings/savGoalNum)*100))}%)</div>
+                    <div style={{fontSize:'.68rem',color:'var(--ok)',marginTop:2}}>{fp(Math.max(0,savings))} saved ({Math.round(Math.min(100,(savings/savGoalNum)*100))}%)</div>
                   </div>
                 )}
               </div>
@@ -1248,36 +1355,27 @@ function BudgetTab(){
               <button className="btn btnsm" onClick={()=>setShowForm(v=>!v)}>+ Transaction</button>
             </div>
             {showForm&&(
-              <div style={{background:'var(--s2)',borderRadius:10,padding:12,marginBottom:12}}>
-                <div style={{fontSize:'.8rem',fontWeight:600,color:'var(--acc2)',marginBottom:10}}>Add Transaction</div>
+              <div style={{background:'rgba(255,255,255,0.04)',borderRadius:10,padding:12,marginBottom:12,border:'1px solid rgba(255,255,255,0.10)'}}>
+                <div style={{fontSize:'.75rem',fontWeight:600,color:'var(--sec2)',marginBottom:10,letterSpacing:'.08em',textTransform:'uppercase'}}>Add Transaction</div>
                 <div style={{display:'flex',gap:6,marginBottom:10}}>
                   {['expense','income'].map(t=>(
-                    <button key={t} className={'btn btnsm '+(form.type===t?'':'btng')} onClick={()=>setForm(f=>({...f,type:t}))}
-                      style={{flex:1,textTransform:'capitalize'}}>{t}</button>))}
+                    <button key={t} className={'btn btnsm '+(form.type===t?'':'btng')} onClick={()=>setForm(f=>({...f,type:t}))} style={{flex:1,textTransform:'capitalize'}}>{t}</button>))}
                 </div>
-                <div className="frow">
-                  <label className="flbl">Description</label>
-                  <input className="inp inp-sm" placeholder="e.g. Tesco shop" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} autoFocus/>
-                </div>
+                <div className="frow"><label className="flbl">Description</label><input className="inp inp-sm" placeholder="e.g. Tesco shop" value={form.desc} onChange={e=>setForm(f=>({...f,desc:e.target.value}))} autoFocus/></div>
                 <div className="grid2" style={{marginBottom:10}}>
-                  <div><label className="flbl">Amount (£)</label>
-                    <input className="inp inp-sm" type="number" placeholder="0.00" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))}/></div>
-                  <div><label className="flbl">Date</label>
-                    <input className="inp inp-sm" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
+                  <div><label className="flbl">Amount (£)</label><input className="inp inp-sm" type="number" placeholder="0.00" value={form.amount} onChange={e=>setForm(f=>({...f,amount:e.target.value}))}/></div>
+                  <div><label className="flbl">Date</label><input className="inp inp-sm" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/></div>
                 </div>
-                <div className="frow">
-                  <label className="flbl">Category</label>
+                <div className="frow"><label className="flbl">Category</label>
                   <select className="inp inp-sm" value={form.catId} onChange={e=>setForm(f=>({...f,catId:e.target.value}))}>
                     {BUD_CATS.map(c=><option key={c.id} value={c.id}>{c.ico} {c.name}</option>)}
-                  </select>
-                </div>
+                  </select></div>
                 <div style={{display:'flex',gap:7}}>
                   <button className="btn btng" onClick={()=>setShowForm(false)} style={{flex:1}}>Cancel</button>
                   <button className="btn" onClick={addTx} style={{flex:1}}>Add</button>
                 </div>
               </div>
             )}
-
             {BUD_CATS.map(cat=>{
               const spent=spentByCat(cat.id);
               const bud=parseFloat(budgets[cat.id])||0;
@@ -1286,17 +1384,14 @@ function BudgetTab(){
               if(spent===0&&bud===0) return null;
               return(
                 <div key={cat.id} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 0',borderBottom:'1px solid rgba(255,255,255,.04)'}}>
-                  <SmallDonut pct={bud>0?pct:0} color={over?'#ef5350':cat.color} size={44}/>
+                  <SmallDonut pct={bud>0?pct:0} color={over?SEC.daily:cat.color} size={44}/>
                   <div style={{flex:1,minWidth:0}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:3}}>
                       <span style={{fontSize:'.83rem'}}>{cat.ico} {cat.name}</span>
                       <span style={{fontSize:'.8rem',fontWeight:600,color:over?'var(--danger)':'var(--cream)'}}>{fp(spent)}{bud>0&&<span style={{fontWeight:400,color:'var(--muted)'}}> / {fp(bud)}</span>}</span>
                     </div>
-                    {bud>0&&(
-                      <div style={{height:3,background:'var(--s3)',borderRadius:99,overflow:'hidden'}}>
-                        <div style={{height:'100%',width:pct+'%',background:over?'var(--danger)':pct>75?'#f59e0b':cat.color,borderRadius:99,transition:'width .4s'}}/>
-                      </div>
-                    )}
+                    {bud>0&&(<div style={{height:3,background:'rgba(255,255,255,0.07)',borderRadius:99,overflow:'hidden'}}>
+                      <div style={{height:'100%',width:pct+'%',background:over?SEC.daily:pct>75?SEC.budget:cat.color,borderRadius:99,transition:'width .4s'}}/></div>)}
                   </div>
                 </div>
               );
@@ -1307,8 +1402,8 @@ function BudgetTab(){
 
       {sub==='monthly'&&(
         <div className="card">
-          <div className="ctitle">Monthly Spending Wheels — {yr}</div>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+          <div className="ctitle">Monthly Spending — {yr}</div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
             {Array.from({length:12},(_,m)=>{
               const spent=getMonthSpent(m);
               const inc=getMonthIncome(m);
@@ -1316,37 +1411,17 @@ function BudgetTab(){
               const isThisMo=m===mo&&yr===now.getFullYear();
               return(
                 <div key={m} onClick={()=>{setMo(m);setSub('overview');}}
-                  style={{background:isThisMo?'rgba(108,99,255,.12)':'var(--s2)',borderRadius:10,padding:'10px 8px',
-                    textAlign:'center',cursor:'pointer',border:isThisMo?'1px solid rgba(108,99,255,.4)':'1px solid var(--bdr)'}}>
-                  <div style={{fontSize:'.7rem',fontWeight:600,color:isThisMo?'var(--acc2)':'var(--muted)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.06em'}}>{MONTH_NAMES[m]}</div>
-                  <div style={{display:'flex',justifyContent:'center',marginBottom:6}}>
-                    <SmallDonut pct={pct} color={pct>90?'#ef5350':pct>75?'#f59e0b':'#6c63ff'} size={52}/>
+                  style={{background:isThisMo?'rgba(196,150,58,0.12)':'rgba(255,255,255,0.04)',borderRadius:10,padding:'10px 8px',
+                    textAlign:'center',cursor:'pointer',border:isThisMo?'1px solid rgba(196,150,58,0.35)':'1px solid rgba(255,255,255,0.08)'}}>
+                  <div style={{fontSize:'.65rem',fontWeight:600,color:isThisMo?SEC.budget:'var(--muted)',marginBottom:7,textTransform:'uppercase',letterSpacing:'.08em'}}>{MONTH_NAMES[m]}</div>
+                  <div style={{display:'flex',justifyContent:'center',marginBottom:5}}>
+                    <SmallDonut pct={pct} color={pct>90?SEC.daily:pct>75?SEC.budget:SEC.budget} size={50}/>
                   </div>
-                  <div style={{fontSize:'.65rem',color:'var(--muted)'}}>£{spent.toFixed(0)}</div>
-                  {inc>0&&<div style={{fontSize:'.6rem',color:'var(--muted)',opacity:.6}}>of £{inc.toFixed(0)}</div>}
+                  <div style={{fontSize:'.63rem',color:'var(--muted)'}}>£{spent.toFixed(0)}</div>
+                  {inc>0&&<div style={{fontSize:'.58rem',color:'var(--muted)',opacity:.6}}>of £{inc.toFixed(0)}</div>}
                 </div>
               );
             })}
-          </div>
-          <div style={{marginTop:16}}>
-            <div className="ctitle" style={{fontSize:'.9rem',marginBottom:8}}>Category Breakdown — {FULL_MONTHS[mo]}</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
-              {BUD_CATS.map(cat=>{
-                const spent=spentByCat(cat.id);
-                const bud=parseFloat(budgets[cat.id])||0;
-                const pct=bud>0?Math.min(100,(spent/bud)*100):0;
-                if(spent===0&&bud===0) return null;
-                return(
-                  <div key={cat.id} style={{display:'flex',alignItems:'center',gap:8,background:'var(--s2)',borderRadius:9,padding:'9px 10px'}}>
-                    <SmallDonut pct={bud>0?pct:0} color={cat.color} size={42}/>
-                    <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontSize:'.75rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{cat.ico} {cat.name}</div>
-                      <div style={{fontSize:'.65rem',color:'var(--muted)'}}>£{spent.toFixed(2)}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       )}
@@ -1363,86 +1438,57 @@ function BudgetTab(){
           <div style={{overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
             <table style={{borderCollapse:'collapse',fontSize:'.68rem',whiteSpace:'nowrap',width:'100%',minWidth:700}}>
               <thead>
-                <tr style={{background:'var(--acc)',color:'#fff'}}>
-                  <th style={{padding:'7px 10px',textAlign:'left',position:'sticky',left:0,background:'var(--acc)',zIndex:2,fontWeight:600}}>Category</th>
-                  {MONTH_NAMES.map(m=><th key={m} style={{padding:'7px 8px',textAlign:'center',fontWeight:600}}>{m}</th>)}
-                  <th style={{padding:'7px 8px',textAlign:'center',fontWeight:600}}>YEAR</th>
+                <tr style={{background:SEC.budget}}>
+                  <th style={{padding:'7px 10px',textAlign:'left',position:'sticky',left:0,background:SEC.budget,zIndex:2,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase'}}>Category</th>
+                  {MONTH_NAMES.map(m=><th key={m} style={{padding:'7px 8px',textAlign:'center',fontWeight:600,letterSpacing:'.06em'}}>{m}</th>)}
+                  <th style={{padding:'7px 8px',textAlign:'center',fontWeight:600,letterSpacing:'.06em'}}>YEAR</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style={{background:'rgba(76,175,80,.12)'}}>
-                  <td colSpan={14} style={{padding:'5px 10px',fontSize:'.65rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>REVENUE</td>
+                <tr style={{background:'rgba(80,160,120,.12)'}}>
+                  <td colSpan={14} style={{padding:'5px 10px',fontSize:'.62rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.12em',color:'var(--ok)',position:'sticky',left:0,background:'rgba(80,160,120,.12)'}}>REVENUE</td>
                 </tr>
                 {['salary','other','other2'].map((k,i)=>{
                   const labels=['Salary / Main Income','Other Income','Additional Income'];
-                  const yearly=Array.from({length:12},(_,m)=>{
-                    const mk=yr+'-'+String(m+1).padStart(2,'0');
-                    const inc=DB.get('bud_income_'+mk,{salary:'',other:'',other2:''});
-                    return parseFloat(inc[k])||0;
-                  });
+                  const yearly=Array.from({length:12},(_,m)=>{ const mk=yr+'-'+String(m+1).padStart(2,'0'); const inc=DB.get('bud_income_'+mk,{salary:'',other:'',other2:''}); return parseFloat(inc[k])||0; });
                   const total=yearly.reduce((s,v)=>s+v,0);
                   if(total===0) return null;
                   return(
-                    <tr key={k} style={{background:i%2===0?'var(--s2)':'transparent'}}>
-                      <td style={{padding:'5px 10px',color:'var(--cream)',position:'sticky',left:0,background:i%2===0?'var(--s2)':'var(--sf)',zIndex:1}}>{labels[i]}</td>
-                      {yearly.map((v,m)=>(
-                        <td key={m} style={{padding:'5px 8px',textAlign:'center',color:v>0?'var(--ok)':'var(--muted)'}}>
-                          {v>0?'£'+v.toFixed(0):'—'}
-                        </td>
-                      ))}
+                    <tr key={k} style={{background:i%2===0?'rgba(255,255,255,0.03)':'transparent'}}>
+                      <td style={{padding:'5px 10px',color:'var(--cream)',position:'sticky',left:0,background:i%2===0?'rgba(22,15,12,0.95)':'rgba(22,15,12,0.90)',zIndex:1}}>{labels[i]}</td>
+                      {yearly.map((v,m)=><td key={m} style={{padding:'5px 8px',textAlign:'center',color:v>0?'var(--ok)':'var(--muted)'}}>{v>0?'£'+v.toFixed(0):'—'}</td>)}
                       <td style={{padding:'5px 8px',textAlign:'center',fontWeight:600,color:'var(--ok)'}}>£{total.toFixed(0)}</td>
                     </tr>
                   );
                 })}
-                <tr style={{background:'rgba(76,175,80,.08)',borderTop:'1px solid rgba(76,175,80,.2)'}}>
-                  <td style={{padding:'6px 10px',fontWeight:700,color:'var(--ok)',position:'sticky',left:0,background:'rgba(76,175,80,.12)'}}>Total Income</td>
-                  {Array.from({length:12},(_,m)=>{
-                    const v=getMonthIncome(m);
-                    return <td key={m} style={{padding:'6px 8px',textAlign:'center',fontWeight:600,color:'var(--ok)'}}>{v>0?'£'+v.toFixed(0):'—'}</td>;
-                  })}
-                  <td style={{padding:'6px 8px',textAlign:'center',fontWeight:700,color:'var(--ok)'}}>
-                    £{Array.from({length:12},(_,m)=>getMonthIncome(m)).reduce((s,v)=>s+v,0).toFixed(0)}
-                  </td>
+                <tr style={{background:'rgba(80,160,120,.08)',borderTop:'1px solid rgba(80,160,120,.2)'}}>
+                  <td style={{padding:'6px 10px',fontWeight:700,color:'var(--ok)',position:'sticky',left:0,background:'rgba(80,160,120,.10)'}}>Total Income</td>
+                  {Array.from({length:12},(_,m)=>{ const v=getMonthIncome(m); return <td key={m} style={{padding:'6px 8px',textAlign:'center',fontWeight:600,color:'var(--ok)'}}>{v>0?'£'+v.toFixed(0):'—'}</td>; })}
+                  <td style={{padding:'6px 8px',textAlign:'center',fontWeight:700,color:'var(--ok)'}}>£{Array.from({length:12},(_,m)=>getMonthIncome(m)).reduce((s,v)=>s+v,0).toFixed(0)}</td>
                 </tr>
-                <tr style={{background:'rgba(239,83,80,.1)'}}>
-                  <td colSpan={14} style={{padding:'5px 10px',fontSize:'.65rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'var(--danger)',position:'sticky',left:0,background:'rgba(239,83,80,.1)'}}>EXPENSES</td>
+                <tr style={{background:'rgba(181,41,60,.10)'}}>
+                  <td colSpan={14} style={{padding:'5px 10px',fontSize:'.62rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.12em',color:'var(--danger)',position:'sticky',left:0,background:'rgba(181,41,60,.10)'}}>EXPENSES</td>
                 </tr>
                 {BUD_CATS.map((cat,i)=>{
                   const yearly=Array.from({length:12},(_,m)=>getMonthCatSpent(m,cat.id));
                   const total=yearly.reduce((s,v)=>s+v,0);
                   return(
-                    <tr key={cat.id} style={{background:i%2===0?'var(--s2)':'transparent'}}>
-                      <td style={{padding:'5px 10px',position:'sticky',left:0,background:i%2===0?'var(--s2)':'var(--sf)',zIndex:1}}>{cat.ico} {cat.name}</td>
-                      {yearly.map((v,m)=>(
-                        <td key={m} style={{padding:'5px 8px',textAlign:'center',color:v>0?'var(--cream)':'var(--muted)'}}>
-                          {v>0?'£'+v.toFixed(0):'—'}
-                        </td>
-                      ))}
-                      <td style={{padding:'5px 8px',textAlign:'center',fontWeight:600,color:total>0?cat.color:'var(--muted)'}}>
-                        {total>0?'£'+total.toFixed(0):'—'}
-                      </td>
+                    <tr key={cat.id} style={{background:i%2===0?'rgba(255,255,255,0.03)':'transparent'}}>
+                      <td style={{padding:'5px 10px',position:'sticky',left:0,background:i%2===0?'rgba(22,15,12,0.95)':'rgba(22,15,12,0.90)',zIndex:1}}>{cat.ico} {cat.name}</td>
+                      {yearly.map((v,m)=><td key={m} style={{padding:'5px 8px',textAlign:'center',color:v>0?'var(--cream)':'var(--muted)'}}>{v>0?'£'+v.toFixed(0):'—'}</td>)}
+                      <td style={{padding:'5px 8px',textAlign:'center',fontWeight:600,color:total>0?cat.color:'var(--muted)'}}>{total>0?'£'+total.toFixed(0):'—'}</td>
                     </tr>
                   );
                 })}
-                <tr style={{background:'rgba(239,83,80,.08)',borderTop:'1px solid rgba(239,83,80,.2)'}}>
-                  <td style={{padding:'6px 10px',fontWeight:700,color:'var(--danger)',position:'sticky',left:0,background:'rgba(239,83,80,.1)'}}>Total Expenses</td>
-                  {Array.from({length:12},(_,m)=>{
-                    const v=getMonthSpent(m);
-                    return <td key={m} style={{padding:'6px 8px',textAlign:'center',fontWeight:600,color:'var(--danger)'}}>{v>0?'£'+v.toFixed(0):'—'}</td>;
-                  })}
-                  <td style={{padding:'6px 8px',textAlign:'center',fontWeight:700,color:'var(--danger)'}}>
-                    £{Array.from({length:12},(_,m)=>getMonthSpent(m)).reduce((s,v)=>s+v,0).toFixed(0)}
-                  </td>
+                <tr style={{background:'rgba(181,41,60,.08)',borderTop:'1px solid rgba(181,41,60,.2)'}}>
+                  <td style={{padding:'6px 10px',fontWeight:700,color:'var(--danger)',position:'sticky',left:0,background:'rgba(181,41,60,.10)'}}>Total Expenses</td>
+                  {Array.from({length:12},(_,m)=>{ const v=getMonthSpent(m); return <td key={m} style={{padding:'6px 8px',textAlign:'center',fontWeight:600,color:'var(--danger)'}}>{v>0?'£'+v.toFixed(0):'—'}</td>; })}
+                  <td style={{padding:'6px 8px',textAlign:'center',fontWeight:700,color:'var(--danger)'}}>£{Array.from({length:12},(_,m)=>getMonthSpent(m)).reduce((s,v)=>s+v,0).toFixed(0)}</td>
                 </tr>
-                <tr style={{background:'rgba(108,99,255,.08)',borderTop:'1px solid rgba(108,99,255,.15)'}}>
-                  <td style={{padding:'6px 10px',fontWeight:700,color:'var(--acc2)',position:'sticky',left:0,background:'rgba(108,99,255,.1)'}}>💰 Net Savings</td>
-                  {Array.from({length:12},(_,m)=>{
-                    const v=getMonthIncome(m)-getMonthSpent(m);
-                    return <td key={m} style={{padding:'6px 8px',textAlign:'center',fontWeight:600,color:v>=0?'var(--ok)':'var(--danger)'}}>{getMonthIncome(m)>0?(v>=0?'+':'')+'£'+Math.abs(v).toFixed(0):'—'}</td>;
-                  })}
-                  <td style={{padding:'6px 8px',textAlign:'center',fontWeight:700,color:'var(--acc2)'}}>
-                    {(()=>{const v=Array.from({length:12},(_,m)=>getMonthIncome(m)-getMonthSpent(m)).reduce((s,x)=>s+x,0); return (v>=0?'+':'')+'£'+Math.abs(v).toFixed(0);})()}
-                  </td>
+                <tr style={{background:'rgba(196,150,58,.08)',borderTop:'1px solid rgba(196,150,58,.15)'}}>
+                  <td style={{padding:'6px 10px',fontWeight:700,color:SEC.budget,position:'sticky',left:0,background:'rgba(196,150,58,.10)'}}>💰 Net Savings</td>
+                  {Array.from({length:12},(_,m)=>{ const v=getMonthIncome(m)-getMonthSpent(m); return <td key={m} style={{padding:'6px 8px',textAlign:'center',fontWeight:600,color:v>=0?'var(--ok)':'var(--danger)'}}>{getMonthIncome(m)>0?(v>=0?'+':'')+'£'+Math.abs(v).toFixed(0):'—'}</td>; })}
+                  <td style={{padding:'6px 8px',textAlign:'center',fontWeight:700,color:SEC.budget}}>{(()=>{const v=Array.from({length:12},(_,m)=>getMonthIncome(m)-getMonthSpent(m)).reduce((s,x)=>s+x,0); return (v>=0?'+':'')+'£'+Math.abs(v).toFixed(0);})()}</td>
                 </tr>
               </tbody>
             </table>
@@ -1454,30 +1500,24 @@ function BudgetTab(){
         <div className="card">
           <div className="ctitle">💷 Income — {FULL_MONTHS[mo]}</div>
           {[['salary','Salary / Main Income'],['other','Other Income'],['other2','Additional Income']].map(([k,lbl])=>(
-            <div className="frow" key={k}>
-              <label className="flbl">{lbl} (£)</label>
-              <input className="inp" type="number" placeholder="0.00" value={income[k]}
-                onChange={e=>saveIncome({...income,[k]:e.target.value})}/>
-            </div>
+            <div className="frow" key={k}><label className="flbl">{lbl} (£)</label>
+              <input className="inp" type="number" placeholder="0.00" value={income[k]} onChange={e=>saveIncome({...income,[k]:e.target.value})}/></div>
           ))}
-          <div style={{background:'var(--s3)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:12}}>
-            <span style={{fontSize:'.82rem',color:'var(--muted)'}}>Total Income</span>
-            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.2rem',color:'var(--acc2)',fontWeight:600}}>{fp(totalIncome)}</span>
+          <div style={{background:'rgba(196,150,58,0.08)',borderRadius:8,padding:'10px 12px',display:'flex',justifyContent:'space-between',marginBottom:12,border:'1px solid rgba(196,150,58,0.20)'}}>
+            <span style={{fontSize:'.82rem',color:'var(--muted)',letterSpacing:'.04em'}}>Total Income</span>
+            <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.2rem',color:SEC.budget,fontWeight:600}}>{fp(totalIncome)}</span>
           </div>
-          <div className="frow">
-            <label className="flbl">Monthly Saving Goal (£)</label>
+          <div className="frow"><label className="flbl">Monthly Saving Goal (£)</label>
             <input className="inp" type="number" placeholder="0.00" value={savingGoal}
-              onChange={e=>{setSavingGoal(e.target.value);DB.set('bud_saving_goal',e.target.value);}}/>
-          </div>
-          <div style={{height:1,background:'var(--bdr)',margin:'14px 0'}}/>
+              onChange={e=>{setSavingGoal(e.target.value);DB.set('bud_saving_goal',e.target.value);}}/></div>
+          <div style={{height:1,background:'rgba(255,255,255,0.08)',margin:'14px 0'}}/>
           <div className="ctitle" style={{marginBottom:10}}>Category Budgets — {FULL_MONTHS[mo]}</div>
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             {BUD_CATS.map(cat=>(
-              <div key={cat.id} style={{background:'var(--s2)',borderRadius:8,padding:'9px 10px'}}>
-                <div style={{fontSize:'.72rem',fontWeight:600,marginBottom:5,color:'var(--cream)'}}>{cat.ico} {cat.name}</div>
+              <div key={cat.id} style={{background:'rgba(255,255,255,0.04)',borderRadius:8,padding:'9px 10px',border:'1px solid rgba(255,255,255,0.08)'}}>
+                <div style={{fontSize:'.7rem',fontWeight:600,marginBottom:5,color:'var(--cream)',letterSpacing:'.04em'}}>{cat.ico} {cat.name}</div>
                 <input className="inp inp-sm" type="number" placeholder="£ budget" value={budgets[cat.id]||''}
-                  onChange={e=>saveBudgets({...budgets,[cat.id]:e.target.value})}
-                  style={{padding:'6px 9px',fontSize:'.78rem'}}/>
+                  onChange={e=>saveBudgets({...budgets,[cat.id]:e.target.value})} style={{padding:'6px 9px',fontSize:'.78rem'}}/>
               </div>
             ))}
           </div>
@@ -1491,13 +1531,13 @@ function BudgetTab(){
             <button className="btn btnsm" onClick={()=>{setSub('overview');setShowForm(true);}}>+ Add</button>
           </div>
           <div style={{display:'flex',gap:8,marginBottom:10,fontSize:'.75rem'}}>
-            <div style={{flex:1,background:'rgba(76,175,80,.1)',border:'1px solid rgba(76,175,80,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
+            <div style={{flex:1,background:'rgba(80,160,120,.08)',border:'1px solid rgba(80,160,120,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
               <div style={{color:'var(--ok)',fontWeight:600}}>{fp(txs.filter(t=>t.type==='income').reduce((s,t)=>s+(parseFloat(t.amount)||0),0))}</div>
-              <div style={{color:'var(--muted)',fontSize:'.65rem'}}>Income</div>
+              <div style={{color:'var(--muted)',fontSize:'.62rem',letterSpacing:'.06em',textTransform:'uppercase'}}>Income</div>
             </div>
-            <div style={{flex:1,background:'rgba(239,83,80,.1)',border:'1px solid rgba(239,83,80,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
+            <div style={{flex:1,background:'rgba(181,41,60,.08)',border:'1px solid rgba(181,41,60,.2)',borderRadius:7,padding:'7px 10px',textAlign:'center'}}>
               <div style={{color:'var(--danger)',fontWeight:600}}>{fp(totalSpent)}</div>
-              <div style={{color:'var(--muted)',fontSize:'.65rem'}}>Expenses</div>
+              <div style={{color:'var(--muted)',fontSize:'.62rem',letterSpacing:'.06em',textTransform:'uppercase'}}>Expenses</div>
             </div>
           </div>
           {txs.length===0&&<div className="empty"><div className="eico">📋</div><div className="etxt">No transactions yet</div></div>}
@@ -1508,13 +1548,10 @@ function BudgetTab(){
                 <span style={{fontSize:'1rem',flexShrink:0}}>{cat.ico}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:'.83rem'}}>{t.desc}</div>
-                  <div style={{fontSize:'.67rem',color:'var(--muted)'}}>{cat.name} · {t.date}</div>
+                  <div style={{fontSize:'.65rem',color:'var(--muted)',letterSpacing:'.04em'}}>{cat.name} · {t.date}</div>
                 </div>
-                <span style={{fontWeight:600,flexShrink:0,color:t.type==='income'?'var(--ok)':'var(--cream)'}}>
-                  {t.type==='income'?'+':'-'}{fp(t.amount)}
-                </span>
-                <button onClick={()=>saveTxs(txs.filter(x=>x.id!==t.id))}
-                  style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:'.85rem',opacity:.4}}>✕</button>
+                <span style={{fontWeight:600,flexShrink:0,color:t.type==='income'?'var(--ok)':'var(--cream)'}}>{t.type==='income'?'+':'-'}{fp(t.amount)}</span>
+                <button onClick={()=>saveTxs(txs.filter(x=>x.id!==t.id))} style={{background:'none',border:'none',color:'var(--muted)',cursor:'pointer',fontSize:'.85rem',opacity:.4}}>✕</button>
               </div>
             );
           })}
@@ -1525,37 +1562,26 @@ function BudgetTab(){
 }
 
 /* ─── Settings Modal ─── */
-// FIX: Single SettingsModal definition (removed duplicate broken fragment)
 function SettingsModal({start, onClose, onUpdateStart}){
   const [nd, setNd] = useState(start||'');
   const [saved, setSaved] = useState(false);
-
   const doSave = () => {
     if(!nd) return;
-    DB.set('start', nd);
-    onUpdateStart(nd);
-    setSaved(true);
+    DB.set('start', nd); onUpdateStart(nd); setSaved(true);
     setTimeout(()=>{ setSaved(false); onClose(); }, 900);
   };
-
-  // FIX: calcWeek takes a date string, not a day number — pass nd (the date string)
   const pd  = nd ? calcDay(nd)    : null;
   const pwk = nd ? calcWeek(nd)   : null;
   const pm  = nd ? calcMonth(nd)  : null;
   const py  = pd ? calcYear(pd)   : null;
-
   const fmtDate = d => d ? new Date(d+'T12:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : 'Not set';
-
   return(
     <div className="overlay" onClick={e=>e.target===e.currentTarget&&onClose()}>
       <div className="modal">
-        <div className="mtitle">Settings</div>
-
-        <div style={{background:'var(--s3)',borderRadius:10,padding:'11px 13px',marginBottom:14}}>
-          <div style={{fontSize:'.7rem',color:'var(--muted)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.08em'}}>Currently stored start date</div>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.05rem',color:'var(--acc2)',fontWeight:600}}>
-            {fmtDate(start)}
-          </div>
+        <div className="mtitle">⚙ Settings</div>
+        <div style={{background:'rgba(196,150,58,0.08)',borderRadius:10,padding:'11px 13px',marginBottom:14,border:'1px solid rgba(196,150,58,0.20)'}}>
+          <div style={{fontSize:'.62rem',color:'var(--muted)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.1em'}}>Journey Start Date</div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.05rem',color:SEC.budget,fontWeight:600}}>{fmtDate(start)}</div>
           {start&&(
             <div style={{fontSize:'.75rem',color:'var(--muted)',marginTop:5,display:'flex',gap:12,flexWrap:'wrap'}}>
               <span style={{color:'var(--cream)'}}>Day {calcDay(start)}</span>
@@ -1565,15 +1591,11 @@ function SettingsModal({start, onClose, onUpdateStart}){
             </div>
           )}
         </div>
-
-        <div className="frow">
-          <label className="flbl">Correct Start Date</label>
-          <input className="inp" type="date" value={nd} max={todayStr()} onChange={e=>setNd(e.target.value)}/>
-        </div>
-
+        <div className="frow"><label className="flbl">Correct Start Date</label>
+          <input className="inp" type="date" value={nd} max={todayStr()} onChange={e=>setNd(e.target.value)}/></div>
         {pd&&nd!==start&&(
-          <div style={{background:'rgba(108,99,255,.08)',border:'1px solid rgba(108,99,255,.25)',borderRadius:9,padding:'10px 13px',marginBottom:12}}>
-            <div style={{fontSize:'.72rem',color:'var(--acc2)',marginBottom:6,fontWeight:600}}>Preview with new date:</div>
+          <div style={{background:'rgba(181,41,60,0.08)',border:'1px solid rgba(181,41,60,0.22)',borderRadius:9,padding:'10px 13px',marginBottom:12}}>
+            <div style={{fontSize:'.68rem',color:SEC2.daily,marginBottom:6,fontWeight:600,letterSpacing:'.08em',textTransform:'uppercase'}}>Preview with new date:</div>
             <div style={{display:'flex',gap:16,fontSize:'.82rem',flexWrap:'wrap'}}>
               <span>Day <strong>{pd}</strong></span>
               <span>Week <strong>{pwk}</strong></span>
@@ -1582,12 +1604,9 @@ function SettingsModal({start, onClose, onUpdateStart}){
             </div>
           </div>
         )}
-
         <div className="macts">
           <button className="btn btng" onClick={onClose} style={{flex:1}}>Cancel</button>
-          <button className="btn" onClick={doSave} disabled={!nd||nd===start||saved} style={{flex:1}}>
-            {saved?'Saved!':'Save and Apply'}
-          </button>
+          <button className="btn" onClick={doSave} disabled={!nd||nd===start||saved} style={{flex:1}}>{saved?'Saved!':'Save & Apply'}</button>
         </div>
       </div>
     </div>
@@ -1596,14 +1615,14 @@ function SettingsModal({start, onClose, onUpdateStart}){
 
 /* ─── Tab config ─── */
 const TABS=[
-  {id:'daily', ico:'✦',lbl:'Today'},
-  {id:'goals', ico:'◎',lbl:'Goals'},
-  {id:'habits',ico:'☑',lbl:'Habits'},
-  {id:'budget',ico:'£',lbl:'Budget'},
-  {id:'bible', ico:'✝',lbl:'Scripture'},
-  {id:'affirm',ico:'☀',lbl:'Affirm'},
-  {id:'cal',   ico:'◻',lbl:'Calendar'},
-  {id:'meet',  ico:'◈',lbl:'Meeting'},
+  {id:'daily', ico:'✦', lbl:'Today',    nav:'nav-daily'},
+  {id:'goals', ico:'◎', lbl:'Goals',    nav:'nav-goals'},
+  {id:'habits',ico:'☑', lbl:'Habits',   nav:'nav-habits'},
+  {id:'budget',ico:'£', lbl:'Budget',   nav:'nav-budget'},
+  {id:'bible', ico:'✝', lbl:'Scripture',nav:'nav-bible'},
+  {id:'affirm',ico:'☀', lbl:'Affirm',   nav:'nav-affirm'},
+  {id:'cal',   ico:'◻', lbl:'Calendar', nav:'nav-cal'},
+  {id:'meet',  ico:'◈', lbl:'Meeting',  nav:'nav-meet'},
 ];
 
 /* ─── App Root ─── */
@@ -1614,17 +1633,15 @@ function App(){
   const [syncStatus,setSyncStatus]=useState('offline');
   const [showSync,setShowSync]=useState(false);
   const [showSettings,setShowSettings]=useState(false);
+  const [bgTheme,setBgTheme]=useState(()=>DB.get('bg_theme','midnight'));
 
   useEffect(()=>{
     Sync.onStatus(setSyncStatus);
     const initApp = async () => {
       const syncUrl = DB.get('sync_url',null);
       const syncKey = DB.get('sync_key',null);
-      if(syncUrl && syncKey){
-        await Sync.init(syncUrl, syncKey);
-      }
-      const s = DB.get('start', null);
-      setStart(s);
+      if(syncUrl && syncKey) await Sync.init(syncUrl, syncKey);
+      setStart(DB.get('start', null));
       setSyncReady(true);
     };
     initApp();
@@ -1632,15 +1649,16 @@ function App(){
 
   const onSetup = d => { DB.set('start',d); setStart(d); };
   const onUpdateStart = d => setStart(d);
+  const setBg = id => { setBgTheme(id); DB.set('bg_theme',id); };
+
+  const bgMap = { midnight:'#131823', western:'#1E110A', crimson:'#180808', alpine:'#0D1518' };
 
   if(!syncReady) return(
-    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:14}}>
-      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1.8rem',color:'var(--gold)'}}>Journey</div>
-      <div style={{fontSize:'.83rem',color:'var(--muted)'}}>
-        {syncStatus==='syncing'?'Syncing your data…':'Loading…'}
-      </div>
-      <div style={{width:120,height:3,background:'var(--s3)',borderRadius:99,overflow:'hidden'}}>
-        <div style={{height:'100%',background:'var(--gold)',borderRadius:99,animation:'load 1.2s ease infinite'}}/>
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',gap:14,background:'#131823'}}>
+      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'2rem',color:'#E8C87A',letterSpacing:'.14em',textTransform:'uppercase'}}>Journey</div>
+      <div style={{fontSize:'.78rem',color:'rgba(255,255,255,0.38)',letterSpacing:'.08em',textTransform:'uppercase'}}>{syncStatus==='syncing'?'Syncing your data…':'Loading…'}</div>
+      <div style={{width:120,height:2,background:'rgba(255,255,255,0.08)',borderRadius:99,overflow:'hidden'}}>
+        <div style={{height:'100%',background:'#C4963A',borderRadius:99,animation:'load 1.2s ease infinite'}}/>
       </div>
       <style>{`@keyframes load{0%{width:0;margin-left:0}50%{width:60%;margin-left:20%}100%{width:0;margin-left:120px}}`}</style>
     </div>
@@ -1651,8 +1669,7 @@ function App(){
   const dn=calcDay(start),wn=calcWeek(start),mn=calcMonth(start),yn=calcYear(dn);
 
   return(
-    <div className="app">
-      {/* FIX: Single Settings button in header */}
+    <div className="app" style={{background:bgMap[bgTheme]||'#131823',transition:'background .5s ease'}}>
       <header className="hdr">
         <div className="hdr-t">Journey</div>
         <div className="hdr-r">
@@ -1662,15 +1679,32 @@ function App(){
             <span className="chip">Mo {mn}</span>
             <span className="chip">Yr {yn}</span>
           </div>
-          <div
-            className={'syncdot '+syncStatus}
-            onClick={()=>setShowSync(true)}
-            title={syncStatus==='synced'?'Synced':syncStatus==='syncing'?'Syncing…':syncStatus==='error'?'Sync error — tap to fix':'Tap to set up sync'}
-          />
-          <button onClick={()=>setShowSettings(true)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--muted)',fontSize:'.75rem',padding:'2px 4px',lineHeight:1,letterSpacing:'.03em',fontFamily:"'DM Sans',sans-serif"}}>Settings</button>
+          <div className={'syncdot '+syncStatus} onClick={()=>setShowSync(true)}
+            title={syncStatus==='synced'?'Synced':syncStatus==='syncing'?'Syncing…':syncStatus==='error'?'Sync error':'Tap to set up sync'}/>
+          <button onClick={()=>setShowSettings(true)}
+            style={{background:'none',border:'none',cursor:'pointer',color:'rgba(255,255,255,0.38)',fontSize:'.72rem',
+              padding:'2px 4px',lineHeight:1,letterSpacing:'.08em',fontFamily:"'DM Sans',sans-serif",textTransform:'uppercase'}}>
+            Settings
+          </button>
         </div>
       </header>
-      <main className="main">
+
+      {/* Background switcher */}
+      <div className="bg-picker">
+        {[
+          {id:'midnight',label:'Night',   bg:'#131823'},
+          {id:'western', label:'Ember',   bg:'#1E110A'},
+          {id:'crimson', label:'Crimson', bg:'#180808'},
+          {id:'alpine',  label:'Alpine',  bg:'#0D1518'},
+        ].map(t=>(
+          <div key={t.id} className={`bg-btn${bgTheme===t.id?' active':''}`}
+            style={{background:t.bg}} onClick={()=>setBg(t.id)}>
+            <span>{t.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <main className={`main tab-${tab}`}>
         {tab==='daily'  && <DailyTab  dn={dn} wn={wn} mn={mn} yn={yn} start={start}/>}
         {tab==='goals'  && <GoalsTab  dn={dn} wn={wn} mn={mn} yn={yn} start={start}/>}
         {tab==='habits' && <HabitsTab/>}
@@ -1680,13 +1714,15 @@ function App(){
         {tab==='cal'    && <CalTab/>}
         {tab==='meet'   && <MeetTab wn={wn}/>}
       </main>
+
       <nav className="bnav">
         {TABS.map(t=>(
-          <button key={t.id} className={'nbtn'+(tab===t.id?' on':'')} onClick={()=>setTab(t.id)}>
-            <span className="nico">{t.ico}</span><span>{t.lbl}</span>
+          <button key={t.id} className={`nbtn ${t.nav}${tab===t.id?' on':''}`} onClick={()=>setTab(t.id)}>
+            <span className="nico" style={tab===t.id?{color:SEC[t.id]}:{}}>{t.ico}</span>
+            <span>{t.lbl}</span>
           </button>))}
       </nav>
-      {/* FIX: Single SyncModal and single SettingsModal render */}
+
       {showSync && <SyncModal onClose={()=>setShowSync(false)} onSynced={()=>setShowSync(false)}/>}
       {showSettings && <SettingsModal start={start} onClose={()=>setShowSettings(false)} onUpdateStart={onUpdateStart}/>}
     </div>
@@ -1699,22 +1735,12 @@ class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(e){ return {error:e}; }
   render(){
     if(this.state.error){
-      return React.createElement('div',{style:{
-        display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
-        height:'100vh',padding:24,textAlign:'center',background:'#07080f',color:'#e8eaf6',
-        fontFamily:"'DM Sans',sans-serif"
-      }},
+      return React.createElement('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:'100vh',padding:24,textAlign:'center',background:'#131823',color:'rgba(255,255,255,0.92)',fontFamily:"'DM Sans',sans-serif"}},
         React.createElement('div',{style:{fontSize:'2rem',marginBottom:12}},'⚠️'),
-        React.createElement('div',{style:{fontSize:'1rem',fontWeight:600,marginBottom:8,color:'#a89cff'}},'Something went wrong'),
-        React.createElement('div',{style:{fontSize:'.8rem',color:'#5a6080',marginBottom:16,maxWidth:280,lineHeight:1.6}},
-          'Try refreshing the page. If it keeps happening, clear your browser cache and reload.'),
-        React.createElement('div',{style:{fontSize:'.7rem',color:'#3a4080',fontFamily:'monospace',background:'#111426',padding:'8px 12px',borderRadius:6,maxWidth:'90%',wordBreak:'break-all'}},
-          this.state.error.toString()),
-        React.createElement('button',{
-          onClick:()=>window.location.reload(),
-          style:{marginTop:16,background:'#6c63ff',color:'#fff',border:'none',borderRadius:8,
-            padding:'10px 20px',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600}
-        },'Reload')
+        React.createElement('div',{style:{fontSize:'1rem',fontWeight:600,marginBottom:8,color:'#E8C87A',letterSpacing:'.08em',textTransform:'uppercase'}},'Something went wrong'),
+        React.createElement('div',{style:{fontSize:'.8rem',color:'rgba(255,255,255,0.38)',marginBottom:16,maxWidth:280,lineHeight:1.6}},'Try refreshing the page. If it keeps happening, clear your browser cache and reload.'),
+        React.createElement('div',{style:{fontSize:'.7rem',color:'rgba(255,255,255,0.25)',fontFamily:'monospace',background:'rgba(0,0,0,0.4)',padding:'8px 12px',borderRadius:6,maxWidth:'90%',wordBreak:'break-all'}},this.state.error.toString()),
+        React.createElement('button',{onClick:()=>window.location.reload(),style:{marginTop:16,background:'#B5293C',color:'#fff',border:'none',borderRadius:8,padding:'10px 20px',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:600,letterSpacing:'.06em'}},'Reload')
       );
     }
     return this.props.children;
@@ -1726,13 +1752,7 @@ try {
     React.createElement(ErrorBoundary, null, React.createElement(App))
   );
 } catch(e) {
-  document.getElementById('root').innerHTML =
-    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#07080f;color:#e8eaf6;font-family:sans-serif;text-align:center;padding:24px">' +
-    '<div style="font-size:2rem;margin-bottom:12px">⚠️</div>' +
-    '<div style="font-size:1rem;color:#a89cff;margin-bottom:8px">Failed to start</div>' +
-    '<div style="font-size:.8rem;color:#5a6080;margin-bottom:16px">Try refreshing the page.</div>' +
-    '<button onclick="location.reload()" style="background:#6c63ff;color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-size:.9rem">Reload</button>' +
-    '</div>';
+  document.getElementById('root').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#131823;color:rgba(255,255,255,0.92);font-family:sans-serif;text-align:center;padding:24px"><div style="font-size:2rem;margin-bottom:12px">⚠️</div><div style="font-size:1rem;color:#E8C87A;margin-bottom:8px">Failed to start</div><div style="font-size:.8rem;color:rgba(255,255,255,0.38);margin-bottom:16px">Try refreshing the page.</div><button onclick="location.reload()" style="background:#B5293C;color:#fff;border:none;border-radius:8px;padding:10px 20px;cursor:pointer;font-size:.9rem">Reload</button></div>';
 }
 </script>
 </body>
