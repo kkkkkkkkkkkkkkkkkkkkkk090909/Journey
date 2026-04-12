@@ -650,7 +650,7 @@ function DailyTab({dn,wn,mn,yn,start}){
       <div style={{display:'flex',alignItems:'center',padding:'0 14px 10px',gap:10,flexShrink:0}}>
         <button className="dnbtn" onClick={()=>setWeekOffset(w=>w-1)}>‹</button>
         <div className="dlbl" style={{fontSize:'.8rem'}}>{weekLabel()}</div>
-        <button className="dnbtn" onClick={()=>setWeekOffset(w=>w+1)} disabled={weekOffset>=0} style={{opacity:weekOffset>=0?.35:1}}>›</button>
+        <button className="dnbtn" onClick={()=>setWeekOffset(w=>w+1)} disabled={weekOffset>=1} style={{opacity:weekOffset>=1?.35:1}}>›</button>
       </div>
       <div ref={scrollRef}
         style={{display:'flex',gap:10,padding:'0 14px 14px',overflowX:'auto',
