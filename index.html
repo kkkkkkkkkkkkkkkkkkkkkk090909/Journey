@@ -805,16 +805,47 @@ function DailyTab({dn,wn,mn,yn,start}){
 function GoalsTab({dn,wn,mn,yn,start}){
   const [sub,setSub]=useState('weekly');
   const yn2=calcYear(dn);
+  const [viewWk,setViewWk]=useState(wn);
+  const [viewMn,setViewMn]=useState(mn);
+  const [viewYr,setViewYr]=useState(yn2);
   return(
     <div className="sec">
       <div className="stabs">
-        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>Week {wn}</button>
-        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>Month {mn}</button>
-        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>Year {yn2}</button>
+        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>Weekly</button>
+        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>Monthly</button>
+        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>Yearly</button>
       </div>
-      {sub==='weekly'&&<GoalList skey={'wgoals_'+wn} label={`Week ${wn}`} type="week" period={wn} start={start}/>}
-      {sub==='monthly'&&<GoalList skey={'mgoals_'+mn} label={`Month ${mn}`} type="none"/>}
-      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn2} label={`Year ${yn2}`} type="none"/>}
+
+      {sub==='weekly'&&(
+        <>
+          <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:11}}>
+            <button className="dnbtn" onClick={()=>setViewWk(w=>Math.max(1,w-1))}>&#x2039;</button>
+            <div className="dlbl">Week {viewWk}{viewWk===wn?' (Current)':''}</div>
+            <button className="dnbtn" onClick={()=>setViewWk(w=>Math.min(wn,w+1))} disabled={viewWk>=wn} style={{opacity:viewWk>=wn?.35:1}}>&#x203a;</button>
+          </div>
+          <GoalList skey={'wgoals_'+viewWk} label={`Week ${viewWk}`} type="week" period={viewWk} start={start}/>
+        </>
+      )}
+      {sub==='monthly'&&(
+        <>
+          <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:11}}>
+            <button className="dnbtn" onClick={()=>setViewMn(m=>Math.max(1,m-1))}>&#x2039;</button>
+            <div className="dlbl">Month {viewMn}{viewMn===mn?' (Current)':''}</div>
+            <button className="dnbtn" onClick={()=>setViewMn(m=>Math.min(mn,m+1))} disabled={viewMn>=mn} style={{opacity:viewMn>=mn?.35:1}}>&#x203a;</button>
+          </div>
+          <GoalList skey={'mgoals_'+viewMn} label={`Month ${viewMn}`} type="none"/>
+        </>
+      )}
+      {sub==='yearly'&&(
+        <>
+          <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:11}}>
+            <button className="dnbtn" onClick={()=>setViewYr(y=>Math.max(1,y-1))}>&#x2039;</button>
+            <div className="dlbl">Year {viewYr}{viewYr===yn2?' (Current)':''}</div>
+            <button className="dnbtn" onClick={()=>setViewYr(y=>Math.min(yn2,y+1))} disabled={viewYr>=yn2} style={{opacity:viewYr>=yn2?.35:1}}>&#x203a;</button>
+          </div>
+          <GoalList skey={'ygoals_'+viewYr} label={`Year ${viewYr}`} type="none"/>
+        </>
+      )}
     </div>
   );
 }
