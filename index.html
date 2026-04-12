@@ -804,32 +804,21 @@ function DailyTab({dn,wn,mn,yn,start}){
 /* ─── Goals ─── */
 function GoalsTab({dn,wn,mn,yn,start}){
   const [sub,setSub]=useState('weekly');
-  const now=new Date(), isSun=now.getDay()===0, todayS=todayStr();
-  const planWk=isSun?wn+1:wn, wLabel=isSun?`Plan Week ${planWk}`:`Week ${wn}`;
-  const planSun=nearestSunToMonthEnd(now.getFullYear(),now.getMonth());
-  const mFull=isSun&&todayS===planSun, planMn=mFull?mn+1:mn, mLabel=mFull?`Plan Month ${planMn}`:`Month ${mn}`;
-  const planSunLbl=new Date(planSun+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'long'});
-  const dyInYr=((dn-1)%365)+1, yFull=dyInYr<=7, yn2=calcYear(dn), yLabel=yFull?`Plan Year ${yn2}`:`Year ${yn2}`;
+  const yn2=calcYear(dn);
   return(
     <div className="sec">
       <div className="stabs">
-        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>{wLabel}</button>
-        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>{mLabel}</button>
-        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>{yLabel}</button>
+        <button className={'stab'+(sub==='weekly'?' on':'')} onClick={()=>setSub('weekly')}>Week {wn}</button>
+        <button className={'stab'+(sub==='monthly'?' on':'')} onClick={()=>setSub('monthly')}>Month {mn}</button>
+        <button className={'stab'+(sub==='yearly'?' on':'')} onClick={()=>setSub('yearly')}>Year {yn2}</button>
       </div>
-      {sub==='weekly'&&<GoalList skey={'wgoals_'+planWk} label={`Week ${planWk}`} full={isSun} isplan={isSun}
-        note={isSun?`Sunday planning — set your goals for Week ${planWk}.`:`Planning opens every Sunday. Full editing resumes then.`}
-        type="week" period={planWk} start={start}/>}
-      {sub==='monthly'&&<GoalList skey={'mgoals_'+planMn} label={`Month ${planMn}`} full={mFull} isplan={mFull}
-        note={mFull?`Monthly planning day! Set goals for Month ${planMn}.`:`Monthly planning opens on the nearest Sunday to month-end — next is ${planSunLbl}.`}
-        type="none"/>}
-      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn2} label={`Year ${yn2}`} full={yFull} isplan={yFull}
-        note={yFull?`New year of the journey! Set your vision for Year ${yn2}.`:`Full yearly planning opens at the start of each journey year.`}
-        type="none"/>}
+      {sub==='weekly'&&<GoalList skey={'wgoals_'+wn} label={`Week ${wn}`} type="week" period={wn} start={start}/>}
+      {sub==='monthly'&&<GoalList skey={'mgoals_'+mn} label={`Month ${mn}`} type="none"/>}
+      {sub==='yearly'&&<GoalList skey={'ygoals_'+yn2} label={`Year ${yn2}`} type="none"/>}
     </div>
   );
 }
-function GoalList({skey,label,full,isplan,note,type,period,start}){
+function GoalList({skey,label,type,period,start}){
   const [goals,setGoals]=useState([]);
   const [inp,setInp]=useState('');
   const [linked,setLinked]=useState({});
@@ -843,24 +832,17 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
   const save=g=>{ setGoals(g); DB.set(skey,g); };
   const add=()=>{ if(!inp.trim()) return; save([...goals,{id:genId(),text:inp.trim(),measurable:isMeas(inp),done:false}]); setInp(''); };
   const toggle=id=>save(goals.map(g=>g.id===id?{...g,done:!g.done}:g));
-  const del=id=>{ if(full) save(goals.filter(g=>g.id!==id)); };
+  const del=id=>save(goals.filter(g=>g.id!==id));
   let tpct=0,mc=0;
   goals.forEach(g=>{ if(!g.measurable) return; mc++; const lk=linked[g.id]; if(lk&&lk.tot>0) tpct+=(lk.done/lk.tot)*100; else if(g.done) tpct+=100; });
   const nm=goals.filter(g=>!g.measurable),nmd=nm.filter(g=>g.done).length;
   const ovr=goals.length===0?0:mc>0?(tpct/mc+(nm.length>0?(nmd/nm.length)*100:0))/(mc>0&&nm.length>0?2:1):nm.length>0?(nmd/nm.length)*100:0;
   return(
     <div>
-      <div className={'pbanner '+(isplan?'plan':'lock')}>
-        <span className="pb-ico">{isplan?'📋':'🔒'}</span>
-        <div>
-          <div className={'pb-hd '+(isplan?'gld':'mu')}>{isplan?'Planning Day':'Mid-period — Light Edits Only'}</div>
-          <div className="pb-bd">{note}</div>
-        </div>
-      </div>
       <div className="card">
         <div className="ctitle">◎ {label} Goals</div>
         {goals.length>0&&<PBar pct={ovr} label="Overall progress"/>}
-        {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">{isplan?`Set your goals for ${label}`:`No goals set for ${label} yet`}</div></div>}
+        {goals.length===0&&<div className="empty"><div className="eico">🎯</div><div className="etxt">No goals yet — add one below</div></div>}
         {goals.map(g=>{ const lk=linked[g.id],lkp=lk&&lk.tot>0?(lk.done/lk.tot)*100:null; return(
           <div key={g.id} className="gitem">
             {!g.measurable&&<button className={'tchk'+(g.done?' on':'')} onClick={()=>toggle(g.id)} aria-label="toggle">
@@ -874,10 +856,10 @@ function GoalList({skey,label,full,isplan,note,type,period,start}){
               </div>
               {g.measurable&&lkp!==null&&<div style={{marginTop:4}}><div className="pwrap" style={{height:3}}><div className="pbar" style={{width:lkp+'%'}}/></div></div>}
             </div>
-            {full?<button className="tdel" onClick={()=>del(g.id)}>✕</button>:<div style={{width:22}}/>}
+            <button className="tdel" onClick={()=>del(g.id)}>✕</button>
           </div>);})}
         <div className="row">
-          <input className="inp" placeholder={full?'Add a goal…':'Add a goal (light edit)…'} value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
+          <input className="inp" placeholder="Add a goal…" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&add()}/>
           <button className="btn" onClick={add}>+</button>
         </div>
         {inp.trim()&&<div className={'hint '+(isMeas(inp)?'ok':'mu')}>{isMeas(inp)?'◉ Measurable — progress tracked':'◌ Not measurable — tick manually'}</div>}
